@@ -1,0 +1,1903 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+    >
+    <title>APNG 合成工具</title>
+
+    <!-- Material Icons -->
+    <link
+        href="https://fonts.googleapis.com/icon?family=Material+Icons"
+        rel="stylesheet"
+    >
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6750a4;
+            --primary-hover: #7f67be;
+            --surface: #fffbfe;
+            --surface-container: #f3edf7;
+            --surface-container-high: #ece6f0;
+            --outline: #79747e;
+            --text: #1d1b20;
+            --text-secondary: #49454f;
+            --danger: #ba1a1a;
+            --radius: 20px;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family:
+                Inter,
+                "Segoe UI",
+                Roboto,
+                "Noto Sans SC",
+                Arial,
+                sans-serif;
+            background: var(--surface);
+            color: var(--text);
+        }
+
+        /* =========================
+           App Bar
+        ========================= */
+
+        .app-bar {
+            height: 72px;
+            display: flex;
+            align-items: center;
+            padding: 0 28px;
+            border-bottom: 1px solid #e6e0e9;
+            background: rgba(255, 251, 254, .92);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        .app-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 21px;
+            font-weight: 650;
+        }
+
+        .app-logo {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary);
+            color: white;
+        }
+
+        /* =========================
+           Layout
+        ========================= */
+
+        .container {
+            width: min(1400px, calc(100% - 40px));
+            margin: 28px auto 60px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 360px;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .card {
+            background: var(--surface-container);
+            border-radius: var(--radius);
+            padding: 24px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 650;
+            margin-bottom: 6px;
+        }
+
+        .card-description {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        /* =========================
+           Upload
+        ========================= */
+
+        .drop-zone {
+            border: 2px dashed #aaa2ad;
+            border-radius: 20px;
+            min-height: 190px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: pointer;
+            transition: .2s ease;
+            padding: 25px;
+            background: rgba(255,255,255,.35);
+        }
+
+        .drop-zone:hover,
+        .drop-zone.dragover {
+            border-color: var(--primary);
+            background: rgba(103,80,164,.07);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .drop-title {
+            font-size: 17px;
+            font-weight: 600;
+        }
+
+        .drop-subtitle {
+            margin-top: 7px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* =========================
+           Frames
+        ========================= */
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 22px 0 15px;
+            flex-wrap: wrap;
+        }
+
+        .frame-count {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .frames {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+            gap: 14px;
+        }
+
+        .frame {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid #e2dce4;
+            position: relative;
+            user-select: none;
+            cursor: grab;
+            transition: .2s ease;
+        }
+
+        .frame:active {
+            cursor: grabbing;
+        }
+
+        .frame.dragging {
+            opacity: .45;
+            transform: scale(.97);
+        }
+
+        .frame-number {
+            position: absolute;
+            left: 9px;
+            top: 9px;
+            min-width: 30px;
+            height: 30px;
+            padding: 0 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            background: rgba(0,0,0,.72);
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            z-index: 2;
+        }
+
+        .frame-image {
+            width: 100%;
+            height: 130px;
+            object-fit: contain;
+            background:
+                linear-gradient(45deg, #eee 25%, transparent 25%),
+                linear-gradient(-45deg, #eee 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #eee 75%),
+                linear-gradient(-45deg, transparent 75%, #eee 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+        }
+
+        .frame-info {
+            padding: 10px 11px 12px;
+        }
+
+        .frame-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 13px;
+            font-weight: 550;
+        }
+
+        .frame-size {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .frame-delete {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 30px;
+            height: 30px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(255,255,255,.9);
+            color: var(--danger);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3;
+        }
+
+        .frame-delete:hover {
+            background: #ffe9e7;
+        }
+
+        /* =========================
+           Empty
+        ========================= */
+
+        .empty {
+            text-align: center;
+            padding: 55px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty .material-icons {
+            font-size: 50px;
+            opacity: .5;
+        }
+
+        /* =========================
+           Form
+        ========================= */
+
+        .field {
+            margin-bottom: 20px;
+        }
+
+        .field-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 7px;
+            display: block;
+        }
+
+        select,
+        input[type="number"],
+        input[type="text"] {
+            width: 100%;
+            height: 50px;
+            border-radius: 12px;
+            border: 1px solid var(--outline);
+            background: white;
+            padding: 0 14px;
+            font-size: 15px;
+            color: var(--text);
+            outline: none;
+            transition: .2s;
+        }
+
+        select:focus,
+        input:focus {
+            border: 2px solid var(--primary);
+        }
+
+        .two-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .switch-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+        }
+
+        .switch-text {
+            font-size: 14px;
+        }
+
+        /* =========================
+           Buttons
+        ========================= */
+
+        button {
+            font-family: inherit;
+        }
+
+        .button {
+            height: 44px;
+            padding: 0 18px;
+            border: none;
+            border-radius: 22px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: .18s ease;
+        }
+
+        .button:disabled {
+            opacity: .45;
+            cursor: not-allowed;
+        }
+
+        .button-primary {
+            color: white;
+            background: var(--primary);
+            box-shadow: 0 2px 5px rgba(0,0,0,.15);
+        }
+
+        .button-primary:hover:not(:disabled) {
+            background: var(--primary-hover);
+            box-shadow: 0 4px 10px rgba(0,0,0,.18);
+        }
+
+        .button-tonal {
+            background: #e8def8;
+            color: #4f378b;
+        }
+
+        .button-tonal:hover {
+            background: #ded0f0;
+        }
+
+        .button-text {
+            background: transparent;
+            color: var(--primary);
+        }
+
+        .button-text:hover {
+            background: rgba(103,80,164,.08);
+        }
+
+        .full {
+            width: 100%;
+        }
+
+        /* =========================
+           Result
+        ========================= */
+
+        .result {
+            margin-top: 22px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result-preview {
+            border-radius: 16px;
+            overflow: hidden;
+            background:
+                linear-gradient(45deg, #eee 25%, transparent 25%),
+                linear-gradient(-45deg, #eee 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #eee 75%),
+                linear-gradient(-45deg, transparent 75%, #eee 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 220px;
+        }
+
+        .result-preview img {
+            max-width: 100%;
+            max-height: 420px;
+            display: block;
+        }
+
+        .result-info {
+            padding: 14px 2px 0;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* =========================
+           Progress
+        ========================= */
+
+        .progress-wrap {
+            margin-top: 18px;
+            display: none;
+        }
+
+        .progress-wrap.show {
+            display: block;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 6px;
+            border-radius: 5px;
+            background: #ddd5e0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: var(--primary);
+            transition: width .15s;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 7px;
+        }
+
+        /* =========================
+           Toast
+        ========================= */
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 25px;
+            transform: translate(-50%, 100px);
+            background: #322f35;
+            color: white;
+            padding: 13px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            opacity: 0;
+            transition: .25s;
+            z-index: 100;
+            box-shadow: 0 5px 20px rgba(0,0,0,.25);
+        }
+
+        .toast.show {
+            transform: translate(-50%, 0);
+            opacity: 1;
+        }
+
+        /* =========================
+           Responsive
+        ========================= */
+
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .settings {
+                order: -1;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .app-bar {
+                height: 62px;
+                padding: 0 16px;
+            }
+
+            .app-title {
+                font-size: 18px;
+            }
+
+            .container {
+                width: calc(100% - 24px);
+                margin-top: 14px;
+            }
+
+            .card {
+                padding: 17px;
+                border-radius: 18px;
+            }
+
+            .frames {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+            }
+
+            .frame-image {
+                height: 110px;
+            }
+
+            .drop-zone {
+                min-height: 160px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="app-bar">
+    <div class="app-title">
+        <div class="app-logo">
+            <span class="material-icons">animation</span>
+        </div>
+        APNG 合成工具
+    </div>
+</header>
+
+<main class="container">
+
+    <div class="grid">
+
+        <!-- =====================
+             左侧：图片
+        ====================== -->
+        <section class="card">
+
+            <div class="card-title">图片帧</div>
+            <div class="card-description">
+                按 1 → 2 → 3 → … 的顺序排列图片，它们会依次成为 APNG 的动画帧。
+            </div>
+
+            <label class="drop-zone" id="dropZone">
+
+                <span class="material-icons upload-icon">
+                    cloud_upload
+                </span>
+
+                <div class="drop-title">
+                    点击上传或拖拽图片到这里
+                </div>
+
+                <div class="drop-subtitle">
+                    支持 PNG / JPG / WEBP<br>
+                    也可以直接 Ctrl + V 粘贴图片
+                </div>
+
+                <input
+                    id="fileInput"
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif"
+                    multiple
+                >
+
+            </label>
+
+            <div class="toolbar">
+
+                <div class="frame-count" id="frameCount">
+                    还没有添加图片
+                </div>
+
+                <div style="display:flex;gap:6px;flex-wrap:wrap">
+
+                    <button
+                        class="button button-tonal"
+                        id="sortButton"
+                    >
+                        <span class="material-icons">sort</span>
+                        自动排序
+                    </button>
+
+                    <button
+                        class="button button-text"
+                        id="clearButton"
+                    >
+                        清空
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div class="frames" id="frames"></div>
+
+            <div class="empty" id="emptyState">
+                <span class="material-icons">
+                    collections
+                </span>
+
+                <div style="margin-top:10px">
+                    添加图片后会显示在这里
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- =====================
+             右侧：设置
+        ====================== -->
+
+        <aside class="card settings">
+
+            <div class="card-title">合成设置</div>
+
+            <div class="card-description">
+                调整输出 APNG 的尺寸和动画速度。
+            </div>
+
+            <div class="field">
+                <label class="field-label">
+                    每帧停留时间（毫秒）
+                </label>
+            
+                <input
+                    type="number"
+                    id="frameDelay"
+                    value="1000"
+                    min="1"
+                    max="3600000"
+                    step="1"
+                >
+            
+                <div style="
+                    margin-top: 6px;
+                    font-size: 12px;
+                    color: #49454f;
+                ">
+                    第 2 帧开始，每一帧使用相同的停留时间。
+                    例如 60000 = 60 秒。
+                </div>
+            </div>
+
+
+            <div class="field">
+
+                <label class="field-label">
+                    输出尺寸
+                </label>
+
+                <select id="sizeMode">
+
+                    <option value="first">
+                        使用第一张图片尺寸
+                    </option>
+
+                    <option value="max">
+                        使用最大尺寸
+                    </option>
+
+                    <option value="custom">
+                        自定义尺寸
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div
+                class="two-fields"
+                id="customSize"
+                style="display:none"
+            >
+
+                <div class="field">
+
+                    <label class="field-label">
+                        宽度
+                    </label>
+
+                    <input
+                        type="number"
+                        id="outputWidth"
+                        value="512"
+                        min="1"
+                        max="4096"
+                    >
+
+                </div>
+
+                <div class="field">
+
+                    <label class="field-label">
+                        高度
+                    </label>
+
+                    <input
+                        type="number"
+                        id="outputHeight"
+                        value="512"
+                        min="1"
+                        max="4096"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div class="field">
+
+                <label class="field-label">
+                    图片适配方式
+                </label>
+
+                <select id="fitMode">
+
+                    <option value="contain">
+                        等比适应（完整显示）
+                    </option>
+
+                    <option value="cover">
+                        等比裁剪（填满画布）
+                    </option>
+
+                    <option value="stretch">
+                        拉伸至画布
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="field">
+
+                <label class="field-label">
+                    背景
+                </label>
+
+                <select id="background">
+
+                    <option value="transparent">
+                        透明
+                    </option>
+
+                    <option value="white">
+                        白色
+                    </option>
+
+                    <option value="black">
+                        黑色
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <button
+                class="button button-primary full"
+                id="generateButton"
+            >
+                <span class="material-icons">
+                    movie
+                </span>
+
+                合成 APNG
+            </button>
+
+
+            <div
+                class="progress-wrap"
+                id="progressWrap"
+            >
+
+                <div class="progress-track">
+
+                    <div
+                        class="progress-bar"
+                        id="progressBar"
+                    ></div>
+
+                </div>
+
+                <div
+                    class="progress-text"
+                    id="progressText"
+                >
+                    正在处理……
+                </div>
+
+            </div>
+
+
+            <div
+                class="result"
+                id="result"
+            >
+
+                <div class="result-preview">
+
+                    <img
+                        id="resultImage"
+                        alt="APNG Preview"
+                    >
+
+                </div>
+
+                <div
+                    class="result-info"
+                    id="resultInfo"
+                ></div>
+
+                <button
+                    class="button button-primary full"
+                    style="margin-top:12px"
+                    id="downloadButton"
+                >
+
+                    <span class="material-icons">
+                        download
+                    </span>
+
+                    下载 APNG
+
+                </button>
+
+            </div>
+
+        </aside>
+
+    </div>
+
+</main>
+
+
+<div class="toast" id="toast"></div>
+
+
+<!--
+    UPNG.js
+    用于 PNG / APNG 编码
+-->
+<script src="https://unpkg.com/@upng/upng-js/dist/UPNG.umd.js"></script>
+
+<script>
+
+    /*
+     * ==========================================
+     * APNG Maker
+     * ==========================================
+     */
+
+    const fileInput = document.getElementById("fileInput");
+    const dropZone = document.getElementById("dropZone");
+    const framesContainer = document.getElementById("frames");
+    const emptyState = document.getElementById("emptyState");
+
+    const frameCount = document.getElementById("frameCount");
+
+    const sortButton = document.getElementById("sortButton");
+    const clearButton = document.getElementById("clearButton");
+
+    const generateButton =
+        document.getElementById("generateButton");
+
+    const sizeMode =
+        document.getElementById("sizeMode");
+
+    const customSize =
+        document.getElementById("customSize");
+
+    const frameDelayInput =
+        document.getElementById("frameDelay");
+
+    const outputWidth =
+        document.getElementById("outputWidth");
+
+    const outputHeight =
+        document.getElementById("outputHeight");
+
+    const fitMode =
+        document.getElementById("fitMode");
+
+    const background =
+        document.getElementById("background");
+
+    const progressWrap =
+        document.getElementById("progressWrap");
+
+    const progressBar =
+        document.getElementById("progressBar");
+
+    const progressText =
+        document.getElementById("progressText");
+
+    const result =
+        document.getElementById("result");
+
+    const resultImage =
+        document.getElementById("resultImage");
+
+    const resultInfo =
+        document.getElementById("resultInfo");
+
+    const downloadButton =
+        document.getElementById("downloadButton");
+
+    const toast =
+        document.getElementById("toast");
+
+
+    /*
+     * ==========================================
+     * 数据
+     * ==========================================
+     */
+
+    let frames = [];
+
+    let generatedBlob = null;
+
+    let dragIndex = null;
+
+
+    /*
+     * ==========================================
+     * Toast
+     * ==========================================
+     */
+
+    function showToast(message) {
+
+        toast.textContent = message;
+
+        toast.classList.add("show");
+
+        setTimeout(() => {
+            toast.classList.remove("show");
+        }, 2200);
+
+    }
+
+
+    /*
+     * ==========================================
+     * 文件添加
+     * ==========================================
+     */
+
+    function addFiles(fileList) {
+
+        const files = Array.from(fileList);
+
+        const imageFiles = files.filter(file =>
+            file.type.startsWith("image/")
+        );
+
+        if (!imageFiles.length) {
+
+            showToast("没有发现图片文件");
+
+            return;
+        }
+
+        imageFiles.forEach(file => {
+
+            const url = URL.createObjectURL(file);
+
+            const img = new Image();
+
+            img.onload = () => {
+
+                frames.push({
+                    file,
+                    url,
+                    img,
+                    name: file.name,
+                    width: img.naturalWidth,
+                    height: img.naturalHeight
+                });
+
+                renderFrames();
+
+            };
+
+            img.onerror = () => {
+
+                URL.revokeObjectURL(url);
+
+            };
+
+            img.src = url;
+
+        });
+
+    }
+
+
+    /*
+     * ==========================================
+     * 上传
+     * ==========================================
+     */
+
+    dropZone.addEventListener("click", () => {
+
+        fileInput.click();
+
+    });
+
+
+    fileInput.addEventListener("change", e => {
+
+        addFiles(e.target.files);
+
+        fileInput.value = "";
+
+    });
+
+
+    /*
+     * ==========================================
+     * Drag & Drop
+     * ==========================================
+     */
+
+    dropZone.addEventListener("dragover", e => {
+
+        e.preventDefault();
+
+        dropZone.classList.add("dragover");
+
+    });
+
+
+    dropZone.addEventListener("dragleave", () => {
+
+        dropZone.classList.remove("dragover");
+
+    });
+
+
+    dropZone.addEventListener("drop", e => {
+
+        e.preventDefault();
+
+        dropZone.classList.remove("dragover");
+
+        addFiles(e.dataTransfer.files);
+
+    });
+
+
+    /*
+     * ==========================================
+     * 粘贴图片
+     * ==========================================
+     */
+
+    document.addEventListener("paste", e => {
+
+        const items = e.clipboardData?.items;
+
+        if (!items) return;
+
+        const imageFiles = [];
+
+        for (const item of items) {
+
+            if (item.type.startsWith("image/")) {
+
+                const file = item.getAsFile();
+
+                if (file) {
+
+                    imageFiles.push(file);
+
+                }
+
+            }
+
+        }
+
+        if (imageFiles.length) {
+
+            e.preventDefault();
+
+            addFiles(imageFiles);
+
+            showToast(
+                `已粘贴 ${imageFiles.length} 张图片`
+            );
+
+        }
+
+    });
+
+
+    /*
+     * ==========================================
+     * 渲染帧
+     * ==========================================
+     */
+
+    function renderFrames() {
+
+        framesContainer.innerHTML = "";
+
+        emptyState.style.display =
+            frames.length ? "none" : "block";
+
+        frameCount.textContent =
+            frames.length
+                ? `共 ${frames.length} 帧`
+                : "还没有添加图片";
+
+
+        frames.forEach((frame, index) => {
+
+            const item =
+                document.createElement("div");
+
+            item.className = "frame";
+
+            item.draggable = true;
+
+            item.dataset.index = index;
+
+
+            /*
+             * 拖动排序
+             */
+
+            item.addEventListener("dragstart", () => {
+
+                dragIndex = index;
+
+                item.classList.add("dragging");
+
+            });
+
+
+            item.addEventListener("dragend", () => {
+
+                item.classList.remove("dragging");
+
+                dragIndex = null;
+
+            });
+
+
+            item.addEventListener("dragover", e => {
+
+                e.preventDefault();
+
+            });
+
+
+            item.addEventListener("drop", e => {
+
+                e.preventDefault();
+
+                const targetIndex = index;
+
+                if (
+                    dragIndex === null ||
+                    dragIndex === targetIndex
+                ) {
+                    return;
+                }
+
+                const moved =
+                    frames.splice(dragIndex, 1)[0];
+
+                frames.splice(targetIndex, 0, moved);
+
+                renderFrames();
+
+            });
+
+
+            /*
+             * HTML
+             */
+
+            item.innerHTML = `
+
+                <div class="frame-number">
+                    ${index + 1}
+                </div>
+
+                <img
+                    class="frame-image"
+                    src="${frame.url}"
+                >
+
+                <button
+                    class="frame-delete"
+                    title="删除"
+                >
+
+                    <span
+                        class="material-icons"
+                        style="font-size:18px"
+                    >
+                        close
+                    </span>
+
+                </button>
+
+                <div class="frame-info">
+
+                    <div class="frame-name">
+                        ${escapeHtml(frame.name)}
+                    </div>
+
+                    <div class="frame-size">
+                        ${frame.width} × ${frame.height}
+                    </div>
+
+                </div>
+
+            `;
+
+
+            item.querySelector(".frame-delete")
+                .addEventListener("click", e => {
+
+                    e.stopPropagation();
+
+                    removeFrame(index);
+
+                });
+
+
+            framesContainer.appendChild(item);
+
+        });
+
+    }
+
+
+    /*
+     * ==========================================
+     * 删除
+     * ==========================================
+     */
+
+    function removeFrame(index) {
+
+        const frame = frames[index];
+
+        if (frame?.url) {
+
+            URL.revokeObjectURL(frame.url);
+
+        }
+
+        frames.splice(index, 1);
+
+        renderFrames();
+
+    }
+
+
+    /*
+     * ==========================================
+     * 清空
+     * ==========================================
+     */
+
+    clearButton.addEventListener("click", () => {
+
+        frames.forEach(frame => {
+
+            URL.revokeObjectURL(frame.url);
+
+        });
+
+        frames = [];
+
+        generatedBlob = null;
+
+        result.classList.remove("show");
+
+        renderFrames();
+
+    });
+
+
+    /*
+     * ==========================================
+     * 自动排序
+     *
+     * 例如：
+     *
+     * 1.png
+     * 2.png
+     * 10.png
+     *
+     * 而不是普通字符串排序
+     * ==========================================
+     */
+
+    function naturalSort(a, b) {
+
+        return a.name.localeCompare(
+            b.name,
+            undefined,
+            {
+                numeric: true,
+                sensitivity: "base"
+            }
+        );
+
+    }
+
+
+    sortButton.addEventListener("click", () => {
+
+        if (frames.length < 2) {
+
+            showToast("至少需要 2 张图片");
+
+            return;
+
+        }
+
+        frames.sort(naturalSort);
+
+        renderFrames();
+
+        showToast("已按照文件名自动排序");
+
+    });
+
+
+    /*
+     * ==========================================
+     * 尺寸设置
+     * ==========================================
+     */
+
+    sizeMode.addEventListener("change", () => {
+
+        customSize.style.display =
+            sizeMode.value === "custom"
+                ? "grid"
+                : "none";
+
+    });
+
+
+    /*
+     * ==========================================
+     * HTML 转义
+     * ==========================================
+     */
+
+    function escapeHtml(text) {
+
+        return String(text)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+
+    }
+
+
+    /*
+     * ==========================================
+     * 计算输出尺寸
+     * ==========================================
+     */
+
+    function getOutputSize() {
+
+        if (!frames.length) {
+
+            return {
+                width: 0,
+                height: 0
+            };
+
+        }
+
+        if (sizeMode.value === "first") {
+
+            return {
+                width: frames[0].width,
+                height: frames[0].height
+            };
+
+        }
+
+
+        if (sizeMode.value === "max") {
+
+            return {
+                width: Math.max(
+                    ...frames.map(x => x.width)
+                ),
+
+                height: Math.max(
+                    ...frames.map(x => x.height)
+                )
+            };
+
+        }
+
+
+        return {
+            width: Number(outputWidth.value),
+            height: Number(outputHeight.value)
+        };
+
+    }
+
+
+    /*
+     * ==========================================
+     * 绘制单帧
+     * ==========================================
+     */
+
+    function drawFrame(
+        ctx,
+        frame,
+        width,
+        height
+    ) {
+
+        /*
+         * 背景
+         */
+
+        if (background.value === "transparent") {
+
+            ctx.clearRect(
+                0,
+                0,
+                width,
+                height
+            );
+
+        } else {
+
+            ctx.save();
+
+            ctx.fillStyle =
+                background.value === "white"
+                    ? "#ffffff"
+                    : "#000000";
+
+            ctx.fillRect(
+                0,
+                0,
+                width,
+                height
+            );
+
+            ctx.restore();
+
+        }
+
+
+        const img = frame.img;
+
+
+        /*
+         * 拉伸
+         */
+
+        if (fitMode.value === "stretch") {
+
+            ctx.drawImage(
+                img,
+                0,
+                0,
+                width,
+                height
+            );
+
+            return;
+
+        }
+
+
+        /*
+         * 等比计算
+         */
+
+        const scale =
+            fitMode.value === "contain"
+
+                ? Math.min(
+                    width / img.naturalWidth,
+                    height / img.naturalHeight
+                )
+
+                : Math.max(
+                    width / img.naturalWidth,
+                    height / img.naturalHeight
+                );
+
+
+        const drawWidth =
+            img.naturalWidth * scale;
+
+        const drawHeight =
+            img.naturalHeight * scale;
+
+
+        const x =
+            (width - drawWidth) / 2;
+
+        const y =
+            (height - drawHeight) / 2;
+
+
+        ctx.drawImage(
+            img,
+            x,
+            y,
+            drawWidth,
+            drawHeight
+        );
+
+    }
+
+
+    /*
+     * ==========================================
+     * 合成 APNG
+     * ==========================================
+     */
+
+    generateButton.addEventListener(
+        "click",
+        async () => {
+
+            if (frames.length === 0) {
+
+                showToast("请先添加图片");
+
+                return;
+
+            }
+
+            if (frames.length === 1) {
+
+                showToast("至少需要 2 张图片");
+
+                return;
+
+            }
+            const delay = Math.max(
+                1,
+                Math.min(
+                    3600000,
+                    Number(frameDelayInput.value) || 1000
+                )
+            );
+
+            // const fps =
+            //     Math.max(
+            //         1,
+            //         Math.min(
+            //             60,
+            //             Number(fpsInput.value) || 12
+            //         )
+            //     );
+
+
+            const {
+                width,
+                height
+            } = getOutputSize();
+
+
+            if (
+                !width ||
+                !height ||
+                width > 4096 ||
+                height > 4096
+            ) {
+
+                showToast("输出尺寸无效");
+
+                return;
+
+            }
+
+
+            generateButton.disabled = true;
+
+            progressWrap.classList.add("show");
+
+            result.classList.remove("show");
+
+
+            try {
+
+                const canvas =
+                    document.createElement("canvas");
+
+                canvas.width = width;
+                canvas.height = height;
+
+
+                const ctx =
+                    canvas.getContext("2d", {
+                        willReadFrequently: true
+                    });
+
+
+                // const buffers = [];
+                const buffers = [
+                    // frame1RGBA,
+                    // frame2RGBA,
+                    // frame3RGBA
+                ];
+                const delay = Math.max(
+                    1,
+                    Math.min(
+                        3600000,
+                        Number(frameDelayInput.value) || 1000
+                    )
+                );
+
+                // 第一帧 0ms
+                // 第二帧开始全部使用相同 delay
+                const delays = frames.map((_, index) => {
+                    return index === 0 ? 0 : delay;
+                });
+                console.log("frames:", buffers.length);
+                console.log("delays:", delays);
+                console.log("width:", width);
+                console.log("height:", height);
+
+
+                for (let i = 0; i < frames.length; i++) {
+                
+                    drawFrame(
+                        ctx,
+                        frames[i],
+                        width,
+                        height
+                    );
+                
+                    const imageData = ctx.getImageData(
+                        0,
+                        0,
+                        width,
+                        height
+                    );
+                
+                    buffers.push(
+                        new Uint8Array(imageData.data)
+                    );
+                
+                    const progress = Math.round(
+                        ((i + 1) / frames.length) * 80
+                    );
+                
+                    progressBar.style.width =
+                        progress + "%";
+                
+                    progressText.textContent =
+                        `正在处理第 ${i + 1} / ${frames.length} 帧`;
+                
+                    await new Promise(resolve =>
+                        setTimeout(resolve, 0)
+                    );
+                }
+
+
+                // 编码 APNG
+
+                progressBar.style.width = "90%";
+
+                progressText.textContent =
+                    "正在编码 APNG…";
+
+
+                // const pngBuffer = UPNG.encode(
+                //     buffers,
+                //     width,
+                //     height,
+                //     0,
+                //     0,
+                //     delays
+                // );
+                const pngBuffer = UPNG.encode(
+                    buffers,
+                    width,
+                    height,
+                    0,
+                    delays
+                );
+                const test = UPNG.decode(pngBuffer);
+
+                console.log("生成结果：", test);
+                console.log("尺寸：", test.width, test.height);
+                console.log("帧数：", test.frames ? test.frames.length : 0);
+                console.log(
+                    "每帧延迟：",
+                    test.frames.map((f, i) => ({
+                        frame: i + 1,
+                        delay: f.delay,
+                        rect: f.rect
+                    }))
+                );
+                console.log("APNG size:", pngBuffer.byteLength);
+
+                const testFrames = UPNG.toRGBA8(test);
+                            
+                console.log("RGBA帧数：", testFrames.length);
+                            
+                if (testFrames.length > 0) {
+                    console.log(
+                        "第一帧RGBA大小：",
+                        testFrames[0].byteLength
+                    );
+                }
+
+
+
+
+                generatedBlob = new Blob(
+                    [pngBuffer],
+                    {
+                        type: "image/apng"
+                    }
+                );
+
+
+                const previewUrl =
+                    URL.createObjectURL(
+                        generatedBlob
+                    );
+
+
+                resultImage.src =
+                    previewUrl;
+
+
+                const sizeKB =
+                    generatedBlob.size / 1024;
+
+
+                resultInfo.textContent =
+                    `${width} × ${height} · ` +
+                    `${frames.length} 帧 · ` +
+                    `第 2 帧起 ${delay} ms/帧 · ` +
+                    `${sizeKB.toFixed(1)} KB`;
+
+
+                progressBar.style.width = "100%";
+
+                progressText.textContent =
+                    "合成完成";
+
+
+                result.classList.add("show");
+
+                showToast("APNG 合成完成");
+
+
+            } catch (error) {
+
+                console.error(error);
+
+                showToast(
+                    "合成失败：" +
+                    (error.message || "未知错误")
+                );
+
+            } finally {
+
+                generateButton.disabled = false;
+
+                setTimeout(() => {
+
+                    progressWrap.classList.remove(
+                        "show"
+                    );
+
+                }, 1000);
+
+            }
+
+        }
+    );
+
+
+    /*
+     * ==========================================
+     * 下载
+     * ==========================================
+     */
+
+    downloadButton.addEventListener(
+        "click",
+        () => {
+
+            if (!generatedBlob) {
+
+                showToast("还没有生成 APNG");
+
+                return;
+
+            }
+
+
+            const url =
+                URL.createObjectURL(
+                    generatedBlob
+                );
+
+
+            const a =
+                document.createElement("a");
+
+            a.href = url;
+
+            a.download =
+                `animation-${Date.now()}.png`;
+
+            document.body.appendChild(a);
+
+            a.click();
+
+            a.remove();
+
+            setTimeout(() => {
+
+                URL.revokeObjectURL(url);
+
+            }, 1000);
+
+        }
+    );
+
+
+    /*
+     * ==========================================
+     * 初始化
+     * ==========================================
+     */
+
+    renderFrames();
+
+</script>
+
+</body>
+</html>
