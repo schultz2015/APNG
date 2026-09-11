@@ -1,0 +1,14 @@
+{
+  "name": "apng-maker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Browser-based APNG composition tool",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^5.0.1"
+  }
+}
