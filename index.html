@@ -344,6 +344,107 @@
             font-size: 14px;
         }
 
+        .switch-control {
+            position: relative;
+            width: 48px;
+            height: 28px;
+            flex: 0 0 auto;
+        }
+
+        .switch-control input {
+            width: 0;
+            height: 0;
+            opacity: 0;
+        }
+
+        .switch-track {
+            position: absolute;
+            inset: 0;
+            border-radius: 999px;
+            background: #ded8e1;
+            border: 1px solid var(--outline);
+            cursor: pointer;
+            transition: .18s ease;
+        }
+
+        .switch-track::after {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            left: 3px;
+            top: 3px;
+            border-radius: 50%;
+            background: #79747e;
+            transition: .18s ease;
+        }
+
+        .switch-control input:checked + .switch-track {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .switch-control input:checked + .switch-track::after {
+            transform: translateX(20px);
+            background: white;
+        }
+
+        .switch-control input:focus-visible + .switch-track {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+        .range-value {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--primary);
+        }
+
+        .blur-preview {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            margin-top: 12px;
+            padding: 8px;
+            border: 1px solid #e2dce4;
+            border-radius: 12px;
+            background: white;
+        }
+
+        .blur-preview.show {
+            display: flex;
+        }
+
+        .blur-preview-image {
+            width: 58px;
+            height: 58px;
+            flex: 0 0 auto;
+            object-fit: cover;
+            border-radius: 8px;
+            filter: blur(12px);
+            background:
+                linear-gradient(45deg, #eee 25%, transparent 25%),
+                linear-gradient(-45deg, #eee 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #eee 75%),
+                linear-gradient(-45deg, transparent 75%, #eee 75%);
+            background-size: 12px 12px;
+            background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+        }
+
+        .blur-preview-canvas {
+            filter: none;
+        }
+
+        .blur-preview-label {
+            color: var(--text-secondary);
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
         /* =========================
            Buttons
         ========================= */
@@ -773,6 +874,64 @@
 
             </div>
 
+            <div class="field">
+                <div class="switch-row">
+                    <div>
+                        <div class="switch-text">插入滤镜首帧</div>
+                        <div class="card-description" style="margin:4px 0 0">
+                            复制第一帧并应用滤镜后，插入到原图之前。
+                        </div>
+                    </div>
+
+                    <label class="switch-control" title="插入滤镜首帧">
+                        <input
+                            type="checkbox"
+                            id="blurFirstFrame"
+                            aria-label="插入滤镜首帧"
+                        >
+                        <span class="switch-track"></span>
+                    </label>
+                </div>
+
+                <div id="blurSettings" style="display:none">
+                    <div class="blur-preview" id="blurPreview">
+                        <canvas
+                            class="blur-preview-image blur-preview-canvas"
+                            id="blurPreviewImage"
+                            width="116"
+                            height="116"
+                            aria-label="滤镜首帧演示"
+                        ></canvas>
+                        <div class="blur-preview-label">
+                            滤镜首帧演示<br>
+                            <span id="blurPreviewText">基于当前第一帧</span>
+                        </div>
+                    </div>
+
+                    <label class="field-label" for="firstFrameFilter">
+                        首帧滤镜
+                    </label>
+                    <select id="firstFrameFilter">
+                        <option value="blur">全局模糊</option>
+                        <option value="mosaic">圆球马赛克</option>
+                        <option value="glass">毛玻璃蒙版</option>
+                    </select>
+
+                    <label class="field-label" for="blurAmount">
+                        滤镜强度
+                        <span class="range-value" id="blurAmountValue">12 px</span>
+                    </label>
+                    <input
+                        type="range"
+                        id="blurAmount"
+                        min="1"
+                        max="40"
+                        value="12"
+                        step="1"
+                    >
+                </div>
+            </div>
+
 
             <div class="field">
 
@@ -928,6 +1087,30 @@
     const background =
         document.getElementById("background");
 
+    const blurFirstFrame =
+        document.getElementById("blurFirstFrame");
+
+    const blurSettings =
+        document.getElementById("blurSettings");
+
+    const blurAmount =
+        document.getElementById("blurAmount");
+
+    const blurAmountValue =
+        document.getElementById("blurAmountValue");
+
+    const firstFrameFilter =
+        document.getElementById("firstFrameFilter");
+
+    const blurPreview =
+        document.getElementById("blurPreview");
+
+    const blurPreviewImage =
+        document.getElementById("blurPreviewImage");
+
+    const blurPreviewText =
+        document.getElementById("blurPreviewText");
+
     const progressWrap =
         document.getElementById("progressWrap");
 
@@ -984,6 +1167,40 @@
 
     }
 
+    function updateBlurPreview() {
+
+        const firstFrame = frames[0];
+        const shouldShow =
+            blurFirstFrame.checked &&
+            firstFrame?.url;
+
+        blurPreview.classList.toggle("show", Boolean(shouldShow));
+
+        if (!shouldShow) {
+            blurPreviewImage
+                .getContext("2d")
+                .clearRect(
+                    0,
+                    0,
+                    blurPreviewImage.width,
+                    blurPreviewImage.height
+                );
+            return;
+        }
+
+        drawFrame(
+            blurPreviewImage.getContext("2d"),
+            firstFrame,
+            blurPreviewImage.width,
+            blurPreviewImage.height,
+            firstFrameFilter.value,
+            Number(blurAmount.value)
+        );
+        blurPreviewText.textContent =
+            `${firstFrame.name} · ${firstFrameFilter.options[firstFrameFilter.selectedIndex].text} · ${blurAmount.value}`;
+
+    }
+
 
     /*
      * ==========================================
@@ -1024,6 +1241,7 @@
                 });
 
                 renderFrames();
+                updateBlurPreview();
 
             };
 
@@ -1149,6 +1367,7 @@
     function renderFrames() {
 
         framesContainer.innerHTML = "";
+        updateBlurPreview();
 
         emptyState.style.display =
             frames.length ? "none" : "block";
@@ -1303,6 +1522,7 @@
         frames.splice(index, 1);
 
         renderFrames();
+        updateBlurPreview();
 
     }
 
@@ -1328,6 +1548,7 @@
         result.classList.remove("show");
 
         renderFrames();
+        updateBlurPreview();
 
     });
 
@@ -1393,6 +1614,27 @@
                 : "none";
 
     });
+
+    blurFirstFrame.addEventListener("change", () => {
+
+        blurSettings.style.display =
+            blurFirstFrame.checked
+                ? "block"
+                : "none";
+
+        updateBlurPreview();
+
+    });
+
+    blurAmount.addEventListener("input", () => {
+
+        blurAmountValue.textContent =
+            `${blurAmount.value} px`;
+        updateBlurPreview();
+
+    });
+
+    firstFrameFilter.addEventListener("change", updateBlurPreview);
 
 
     /*
@@ -1473,7 +1715,9 @@
         ctx,
         frame,
         width,
-        height
+        height,
+        filterType = "blur",
+        filterAmount = 0
     ) {
 
         /*
@@ -1512,6 +1756,11 @@
 
         const img = frame.img;
 
+        ctx.save();
+
+        if (filterType === "blur" && filterAmount > 0) {
+            ctx.filter = `blur(${filterAmount}px)`;
+        }
 
         /*
          * 拉伸
@@ -1526,6 +1775,9 @@
                 width,
                 height
             );
+
+            ctx.restore();
+            applyFrameFilter(ctx, width, height, filterType, filterAmount);
 
             return;
 
@@ -1572,6 +1824,122 @@
             drawHeight
         );
 
+        ctx.restore();
+        applyFrameFilter(ctx, width, height, filterType, filterAmount);
+
+    }
+
+    function applyFrameFilter(
+        ctx,
+        width,
+        height,
+        filterType,
+        filterAmount
+    ) {
+
+        if (
+            filterType === "blur" ||
+            !filterAmount
+        ) {
+            return;
+        }
+
+        const source = ctx.getImageData(0, 0, width, height);
+        const output = ctx.createImageData(width, height);
+        const sourceData = source.data;
+        const outputData = output.data;
+
+        if (filterType === "mosaic") {
+            const cellSize = Math.max(4, Math.round(filterAmount));
+            const radius = cellSize / 2;
+            const sample = (x, y) =>
+                (y * width + x) * 4;
+
+            for (let y = 0; y < height; y += cellSize) {
+                for (let x = 0; x < width; x += cellSize) {
+                    const centerX = Math.min(
+                        width - 1,
+                        Math.floor(x + radius)
+                    );
+                    const centerY = Math.min(
+                        height - 1,
+                        Math.floor(y + radius)
+                    );
+                    const sourceIndex = sample(centerX, centerY);
+
+                    for (
+                        let pixelY = y;
+                        pixelY < Math.min(y + cellSize, height);
+                        pixelY++
+                    ) {
+                        for (
+                            let pixelX = x;
+                            pixelX < Math.min(x + cellSize, width);
+                            pixelX++
+                        ) {
+                            const distanceX =
+                                pixelX - (x + radius - .5);
+                            const distanceY =
+                                pixelY - (y + radius - .5);
+
+                            if (
+                                distanceX * distanceX +
+                                distanceY * distanceY >
+                                radius * radius
+                            ) {
+                                continue;
+                            }
+
+                            const outputIndex = sample(pixelX, pixelY);
+                            outputData.set(
+                                sourceData.slice(
+                                    sourceIndex,
+                                    sourceIndex + 4
+                                ),
+                                outputIndex
+                            );
+                        }
+                    }
+                }
+            }
+
+            ctx.putImageData(output, 0, 0);
+            return;
+        }
+
+        const frostedSource =
+            document.createElement("canvas");
+
+        frostedSource.width = width;
+        frostedSource.height = height;
+        frostedSource
+            .getContext("2d")
+            .putImageData(source, 0, 0);
+
+        ctx.clearRect(0, 0, width, height);
+        ctx.save();
+        ctx.filter =
+            `blur(${Math.max(1, Math.round(filterAmount / 2))}px)`;
+        ctx.drawImage(
+            frostedSource,
+            -filterAmount,
+            -filterAmount,
+            width + filterAmount * 2,
+            height + filterAmount * 2
+        );
+        ctx.restore();
+
+        ctx.fillStyle =
+            `rgba(255, 255, 255, ${Math.min(
+                .48,
+                .12 + filterAmount / 120
+            )})`;
+        ctx.fillRect(0, 0, width, height);
+
+        ctx.globalAlpha = .12;
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, width, height);
+        ctx.globalAlpha = 1;
     }
 
 
@@ -1783,13 +2151,19 @@
 
             }
 
-            if (frames.length === 1) {
+            const outputFrames =
+                blurFirstFrame.checked
+                    ? [
+                        {
+                            ...frames[0],
+                            name: `${frames[0].name}（滤镜首帧）`,
+                            filterType: firstFrameFilter.value,
+                            filterAmount: Number(blurAmount.value)
+                        },
+                        ...frames
+                    ]
+                    : frames;
 
-                showToast("至少需要 2 张图片");
-
-                return;
-
-            }
             const delay = Math.max(
                 1,
                 Math.min(
@@ -1856,32 +2230,22 @@
                     // frame2RGBA,
                     // frame3RGBA
                 ];
-                const delay = Math.max(
-                    1,
-                    Math.min(
-                        3600000,
-                        Number(frameDelayInput.value) || 1000
-                    )
-                );
-
                 // 第一帧 0ms
                 // 第二帧开始全部使用相同 delay
-                const delays = frames.map((_, index) => {
+                const delays = outputFrames.map((_, index) => {
                     return index === 0 ? 0 : delay;
                 });
-                console.log("frames:", buffers.length);
-                console.log("delays:", delays);
-                console.log("width:", width);
-                console.log("height:", height);
 
 
-                for (let i = 0; i < frames.length; i++) {
+                for (let i = 0; i < outputFrames.length; i++) {
                 
                     drawFrame(
                         ctx,
-                        frames[i],
+                        outputFrames[i],
                         width,
-                        height
+                        height,
+                        outputFrames[i].filterType || "blur",
+                        outputFrames[i].filterAmount || 0
                     );
                 
                     const imageData = ctx.getImageData(
@@ -1896,14 +2260,14 @@
                     );
                 
                     const progress = Math.round(
-                        ((i + 1) / frames.length) * 80
+                        ((i + 1) / outputFrames.length) * 80
                     );
                 
                     progressBar.style.width =
                         progress + "%";
                 
                     progressText.textContent =
-                        `正在处理第 ${i + 1} / ${frames.length} 帧`;
+                        `正在处理第 ${i + 1} / ${outputFrames.length} 帧`;
                 
                     await new Promise(resolve =>
                         setTimeout(resolve, 0)
@@ -1995,8 +2359,12 @@
 
                 resultInfo.textContent =
                     `${width} × ${height} · ` +
-                    `${frames.length} 帧 · ` +
-                    `第 2 帧起 ${delay} ms/帧 · ` +
+                    `${outputFrames.length} 帧 · ` +
+                    (
+                        outputFrames.length > 1
+                            ? `第 2 帧起 ${delay} ms/帧 · `
+                            : "单帧输出 · "
+                    ) +
                     `${sizeKB.toFixed(1)} KB`;
 
 
