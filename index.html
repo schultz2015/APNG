@@ -163,6 +163,21 @@
             margin: 28px auto 60px;
         }
 
+        .site-footer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0 20px 28px;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .site-footer img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+
         .grid {
             display: grid;
             grid-template-columns: minmax(0, 1fr) 360px;
@@ -1259,6 +1274,13 @@
     </section>
 
 </main>
+
+<footer class="site-footer" aria-label="网站访问统计">
+    <img
+        src="https://count.himiku.com/@schultz2015-APNG?name=schultz2015-APNG&theme=moebooru-h&padding=7&offset=0&align=top&scale=1&pixelated=1&darkmode=0"
+        alt="本站访问次数"
+    >
+</footer>
 
 
 <div class="toast" id="toast"></div>
