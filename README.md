@@ -2,6 +2,8 @@
 
 一个基于浏览器的 APNG 动画合成工具，用来QQ发图。
 
+在线使用：[https://schultz2015.github.io/APNG/](https://schultz2015.github.io/APNG/)
+
 ## 功能
 
 - 上传、拖拽或粘贴图片
