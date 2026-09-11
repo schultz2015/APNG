@@ -5,7 +5,8 @@ export function applyFrameFilter(
         filterType,
         filterAmount,
         colorLevelCount = 16,
-        downsampleFactor = 1
+        downsampleFactor = 1,
+        filterQualityPercent = 100
     ) {
 
         if (
@@ -126,9 +127,19 @@ export function applyFrameFilter(
 
         const output = ctx.createImageData(width, height);
         const outputData = output.data;
-        const levels = Math.max(2, Math.min(256, colorLevelCount));
+        const quality = Math.max(
+            10,
+            Math.min(100, filterQualityPercent)
+        ) / 100;
+        const levels = Math.max(
+            2,
+            Math.min(256, Math.round(colorLevelCount * quality))
+        );
         const step = 255 / (levels - 1);
-        const sampleSize = Math.max(1, Math.round(downsampleFactor));
+        const sampleSize = Math.max(
+            1,
+            Math.min(64, Math.round(downsampleFactor))
+        );
 
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {

@@ -6,7 +6,7 @@
         name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
     >
-    <title>APNG 合成工具</title>
+    <title>APNG 涩涩合成工具</title>
 
     <!-- Material Icons -->
     <link
@@ -69,6 +69,78 @@
             gap: 12px;
             font-size: 21px;
             font-weight: 650;
+        }
+
+        .page-tabs {
+            display: flex;
+            gap: 6px;
+            margin-left: auto;
+        }
+
+        .page-tab {
+            height: 38px;
+            padding: 0 14px;
+            border: 1px solid transparent;
+            border-radius: 19px;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .page-tab.active {
+            background: #e8def8;
+            color: #4f378b;
+        }
+
+        .page-section {
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
+        .extractor-drop-zone {
+            min-height: 220px;
+        }
+
+        .extractor-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .extracted-frames {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+            gap: 14px;
+            margin-top: 18px;
+        }
+
+        .extract-card {
+            padding: 10px;
+            border: 1px solid #e2dce4;
+            border-radius: 16px;
+            background: white;
+        }
+
+        .extract-image {
+            width: 100%;
+            height: 140px;
+            object-fit: contain;
+            border-radius: 10px;
+            background: #f3edf7;
+        }
+
+        .extract-name {
+            margin: 8px 0;
+            color: var(--text-secondary);
+            font-size: 12px;
         }
 
         .app-logo {
@@ -159,7 +231,8 @@
             line-height: 1.6;
         }
 
-        #fileInput {
+        #fileInput,
+        #extractFileInput {
             display: none;
         }
 
@@ -688,6 +761,15 @@
                 font-size: 18px;
             }
 
+            .page-tabs {
+                gap: 2px;
+            }
+
+            .page-tab {
+                padding: 0 8px;
+                font-size: 12px;
+            }
+
             .container {
                 width: calc(100% - 24px);
                 margin-top: 14px;
@@ -721,12 +803,17 @@
         <div class="app-logo">
             <span class="material-icons">animation</span>
         </div>
-        APNG 合成工具
+        APNG 涩涩合成工具
     </div>
+    <nav class="page-tabs" aria-label="功能分页">
+        <button class="page-tab active" id="composeTab" type="button">APNG 合成</button>
+        <button class="page-tab" id="extractTab" type="button">图片拆帧</button>
+    </nav>
 </header>
 
 <main class="container">
 
+    <section class="page-section active" id="composePage">
     <div class="grid">
 
         <!-- =====================
@@ -825,7 +912,7 @@
                 <input
                     type="number"
                     id="frameDelay"
-                    value="1000"
+                    value="30000"
                     min="1"
                     max="3600000"
                     step="1"
@@ -977,14 +1064,14 @@
 
                     <label class="field-label" for="blurAmount">
                         滤镜强度
-                        <span class="range-value" id="blurAmountValue">12 px</span>
+                    <span class="range-value" id="blurAmountValue">20 px</span>
                     </label>
                     <input
                         type="range"
                         id="blurAmount"
                         min="1"
                         max="40"
-                        value="12"
+                        value="20"
                         step="1"
                     >
                     <div class="filter-help">
@@ -993,30 +1080,46 @@
 
                     <label class="field-label" for="colorLevels">
                         颜色量化
-                        <span class="range-value" id="colorLevelsValue">16 级</span>
+                        <span class="range-value" id="colorLevelsValue">64 级</span>
                     </label>
                     <input
                         type="range"
                         id="colorLevels"
                         min="2"
                         max="64"
-                        value="16"
+                        value="64"
                         step="1"
                     >
                     <div class="filter-help">
                         限制颜色数量，级数越低颜色越少。
                     </div>
 
+                    <label class="field-label" for="filterQuality">
+                        色带质量
+                        <span class="range-value" id="filterQualityValue">20%</span>
+                    </label>
+                    <input
+                        type="range"
+                        id="filterQuality"
+                        min="10"
+                        max="100"
+                        value="20"
+                        step="5"
+                    >
+                    <div class="filter-help">
+                        质量越低颜色越少，色彩断层越明显。
+                    </div>
+
                     <label class="field-label" for="downsample">
                         降采样倍率
-                        <span class="range-value" id="downsampleValue">1x</span>
+                        <span class="range-value" id="downsampleValue">5x</span>
                     </label>
                     <input
                         type="range"
                         id="downsample"
                         min="1"
-                        max="8"
-                        value="1"
+                        max="64"
+                        value="5"
                         step="1"
                     >
                     <div class="filter-help">
@@ -1126,6 +1229,35 @@
 
     </div>
 
+    </section>
+
+    <section class="page-section" id="extractPage">
+        <div class="card">
+            <div class="card-title">图片拆帧</div>
+            <div class="card-description">
+                上传 PNG 或 APNG，将每一帧拆出为独立 PNG 图片。
+            </div>
+
+            <label class="drop-zone extractor-drop-zone" id="extractDropZone">
+                <span class="material-icons upload-icon">collections</span>
+                <div class="drop-title">点击上传或拖拽 PNG / APNG 到这里</div>
+                <div class="drop-subtitle">
+                    静态 PNG 会导出 1 帧，APNG 会导出全部动画帧。
+                </div>
+                <input id="extractFileInput" type="file" accept="image/png,.png,.apng" />
+            </label>
+
+            <div class="extractor-toolbar">
+                <div class="frame-count" id="extractCount">还没有加载图片</div>
+                <button class="button button-primary" id="extractAllButton" disabled>
+                    <span class="material-icons">download</span>
+                    导出全部帧
+                </button>
+            </div>
+            <div class="extracted-frames" id="extractedFrames"></div>
+        </div>
+    </section>
+
 </main>
 
 
@@ -1228,6 +1360,12 @@
     const colorLevelsValue =
         document.getElementById("colorLevelsValue");
 
+    const filterQuality =
+        document.getElementById("filterQuality");
+
+    const filterQualityValue =
+        document.getElementById("filterQualityValue");
+
     const downsample =
         document.getElementById("downsample");
 
@@ -1258,6 +1396,33 @@
     const toast =
         document.getElementById("toast");
 
+    const composeTab =
+        document.getElementById("composeTab");
+
+    const extractTab =
+        document.getElementById("extractTab");
+
+    const composePage =
+        document.getElementById("composePage");
+
+    const extractPage =
+        document.getElementById("extractPage");
+
+    const extractFileInput =
+        document.getElementById("extractFileInput");
+
+    const extractDropZone =
+        document.getElementById("extractDropZone");
+
+    const extractCount =
+        document.getElementById("extractCount");
+
+    const extractAllButton =
+        document.getElementById("extractAllButton");
+
+    const extractedFrames =
+        document.getElementById("extractedFrames");
+
 
     /*
      * ==========================================
@@ -1270,6 +1435,120 @@
     let generatedBlob = null;
 
     let dragIndex = null;
+
+    let extractedPngs = [];
+
+    function switchPage(page) {
+        const composeActive = page === "compose";
+        composeTab.classList.toggle("active", composeActive);
+        extractTab.classList.toggle("active", !composeActive);
+        composePage.classList.toggle("active", composeActive);
+        extractPage.classList.toggle("active", !composeActive);
+    }
+
+    composeTab.addEventListener("click", () => switchPage("compose"));
+    extractTab.addEventListener("click", () => switchPage("extract"));
+
+    function downloadBlob(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function renderExtractedFrames() {
+        extractedFrames.innerHTML = "";
+        extractCount.textContent = extractedPngs.length
+            ? `共 ${extractedPngs.length} 帧`
+            : "还没有加载图片";
+        extractAllButton.disabled = extractedPngs.length === 0;
+
+        extractedPngs.forEach((blob, index) => {
+            const card = document.createElement("div");
+            card.className = "extract-card";
+            const image = document.createElement("img");
+            image.className = "extract-image";
+            image.alt = `第 ${index + 1} 帧`;
+            image.src = URL.createObjectURL(blob);
+            image.addEventListener("click", () => {
+                openImageModal(image);
+            });
+            const name = document.createElement("div");
+            name.className = "extract-name";
+            name.textContent = `第 ${index + 1} 帧`;
+            const button = document.createElement("button");
+            button.className = "button button-tonal full";
+            button.type = "button";
+            button.textContent = "下载此帧";
+            button.addEventListener("click", () => {
+                downloadBlob(blob, `frame-${String(index + 1).padStart(3, "0")}.png`);
+            });
+            card.append(image, name, button);
+            extractedFrames.appendChild(card);
+        });
+    }
+
+    async function extractFrames(file) {
+        if (!file) {
+            return;
+        }
+
+        try {
+            const decoded = UPNG.decode(await file.arrayBuffer());
+            const rgbaFrames = UPNG.toRGBA8(decoded);
+            extractedPngs = rgbaFrames.map(rgba =>
+                new Blob(
+                    [UPNG.encode(
+                        [rgba],
+                        decoded.width,
+                        decoded.height,
+                        0
+                    )],
+                    { type: "image/png" }
+                )
+            );
+            renderExtractedFrames();
+            showToast(`已拆出 ${extractedPngs.length} 帧`);
+        } catch (error) {
+            console.error(error);
+            showToast("拆帧失败：" + (error.message || "文件格式无效"));
+        }
+    }
+
+    extractFileInput.addEventListener("change", event => {
+        extractFrames(event.target.files[0]);
+        extractFileInput.value = "";
+    });
+
+    extractDropZone.addEventListener("dragover", event => {
+        event.preventDefault();
+        extractDropZone.classList.add("dragover");
+    });
+
+    extractDropZone.addEventListener("dragleave", () => {
+        extractDropZone.classList.remove("dragover");
+    });
+
+    extractDropZone.addEventListener("drop", event => {
+        event.preventDefault();
+        extractDropZone.classList.remove("dragover");
+        extractFrames(event.dataTransfer.files[0]);
+    });
+
+    extractAllButton.addEventListener("click", () => {
+        extractedPngs.forEach((blob, index) => {
+            setTimeout(() => {
+                downloadBlob(
+                    blob,
+                    `frame-${String(index + 1).padStart(3, "0")}.png`
+                );
+            }, index * 120);
+        });
+    });
 
 
     /*
@@ -1319,10 +1598,36 @@
             firstFrameFilter.value,
             Number(blurAmount.value),
             Number(colorLevels.value),
-            Number(downsample.value)
+            Number(downsample.value),
+            Number(filterQuality.value)
         );
         blurPreviewText.textContent =
             `${firstFrame.name} · ${firstFrameFilter.options[firstFrameFilter.selectedIndex].text} · ${blurAmount.value}`;
+
+    }
+
+    function openImageModal(image) {
+
+        const scale = Math.min(
+            1,
+            1200 / image.naturalWidth,
+            1200 / image.naturalHeight
+        );
+        const width = Math.max(
+            1,
+            Math.round(image.naturalWidth * scale)
+        );
+        const height = Math.max(
+            1,
+            Math.round(image.naturalHeight * scale)
+        );
+
+        previewModalCanvas.width = width;
+        previewModalCanvas.height = height;
+        previewModalCanvas
+            .getContext("2d")
+            .drawImage(image, 0, 0, width, height);
+        previewModal.classList.add("show");
 
     }
 
@@ -1352,7 +1657,8 @@
             firstFrameFilter.value,
             Number(blurAmount.value),
             Number(colorLevels.value),
-            Number(downsample.value)
+            Number(downsample.value),
+            Number(filterQuality.value)
         );
         previewModal.classList.add("show");
 
@@ -1656,6 +1962,12 @@
 
                 });
 
+            item.querySelector(".frame-image")
+                .addEventListener("click", e => {
+                    e.stopPropagation();
+                    openImageModal(e.currentTarget);
+                });
+
 
             framesContainer.appendChild(item);
 
@@ -1822,6 +2134,12 @@
         updateBlurPreview();
     });
 
+    filterQuality.addEventListener("input", () => {
+        filterQualityValue.textContent =
+            `${filterQuality.value}%`;
+        updateBlurPreview();
+    });
+
 
     /*
      * ==========================================
@@ -1905,7 +2223,8 @@
         filterType = "blur",
         filterAmount = 0,
         colorLevelCount = 16,
-        downsampleFactor = 1
+        downsampleFactor = 1,
+        filterQualityPercent = 100
     ) {
 
         /*
@@ -1972,7 +2291,8 @@
                 filterType,
                 filterAmount,
                 colorLevelCount,
-                downsampleFactor
+                downsampleFactor,
+                filterQualityPercent
             );
 
             return;
@@ -2028,7 +2348,8 @@
             filterType,
             filterAmount,
             colorLevelCount,
-            downsampleFactor
+            downsampleFactor,
+            filterQualityPercent
         );
 
     }
@@ -2068,7 +2389,7 @@
                 1,
                 Math.min(
                     3600000,
-                    Number(frameDelayInput.value) || 1000
+                    Number(frameDelayInput.value) || 30000
                 )
             );
 
@@ -2147,7 +2468,8 @@
                         outputFrames[i].filterType || "blur",
                         outputFrames[i].filterAmount || 0,
                         Number(colorLevels.value),
-                        Number(downsample.value)
+                        Number(downsample.value),
+                        Number(filterQuality.value)
                     );
                 
                     const imageData = ctx.getImageData(
