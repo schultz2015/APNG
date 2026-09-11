@@ -404,6 +404,14 @@
             accent-color: var(--primary);
         }
 
+        .filter-help {
+            margin-top: 4px;
+            margin-bottom: 12px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
         .blur-preview {
             display: none;
             align-items: center;
@@ -443,6 +451,56 @@
             color: var(--text-secondary);
             font-size: 12px;
             line-height: 1.45;
+        }
+
+        .blur-preview {
+            cursor: zoom-in;
+        }
+
+        .preview-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 80;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 28px;
+            background: rgba(29, 27, 32, .78);
+        }
+
+        .preview-modal.show {
+            display: flex;
+        }
+
+        .preview-modal-content {
+            position: relative;
+            max-width: min(900px, 100%);
+            max-height: 100%;
+            padding: 12px;
+            border-radius: 18px;
+            background: var(--surface);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, .3);
+        }
+
+        .preview-modal-canvas {
+            display: block;
+            max-width: min(820px, 85vw);
+            max-height: 82vh;
+            object-fit: contain;
+        }
+
+        .preview-modal-close {
+            position: absolute;
+            top: -14px;
+            right: -14px;
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 50%;
+            color: white;
+            background: var(--primary);
+            cursor: pointer;
+            font-size: 22px;
         }
 
         /* =========================
@@ -929,6 +987,41 @@
                         value="12"
                         step="1"
                     >
+                    <div class="filter-help">
+                        控制滤镜效果的明显程度。
+                    </div>
+
+                    <label class="field-label" for="colorLevels">
+                        颜色量化
+                        <span class="range-value" id="colorLevelsValue">16 级</span>
+                    </label>
+                    <input
+                        type="range"
+                        id="colorLevels"
+                        min="2"
+                        max="64"
+                        value="16"
+                        step="1"
+                    >
+                    <div class="filter-help">
+                        限制颜色数量，级数越低颜色越少。
+                    </div>
+
+                    <label class="field-label" for="downsample">
+                        降采样倍率
+                        <span class="range-value" id="downsampleValue">1x</span>
+                    </label>
+                    <input
+                        type="range"
+                        id="downsample"
+                        min="1"
+                        max="8"
+                        value="1"
+                        step="1"
+                    >
+                    <div class="filter-help">
+                        降低图像细节，倍率越高颗粒感越明显。
+                    </div>
                 </div>
             </div>
 
@@ -1038,6 +1131,13 @@
 
 <div class="toast" id="toast"></div>
 
+<div class="preview-modal" id="previewModal" role="dialog" aria-modal="true" aria-label="滤镜首帧大图预览">
+    <div class="preview-modal-content">
+        <button class="preview-modal-close" id="previewModalClose" type="button" aria-label="关闭预览">×</button>
+        <canvas class="preview-modal-canvas" id="previewModalCanvas"></canvas>
+    </div>
+</div>
+
 
 <!--
     UPNG.js
@@ -1112,6 +1212,27 @@
 
     const blurPreviewText =
         document.getElementById("blurPreviewText");
+
+    const previewModal =
+        document.getElementById("previewModal");
+
+    const previewModalCanvas =
+        document.getElementById("previewModalCanvas");
+
+    const previewModalClose =
+        document.getElementById("previewModalClose");
+
+    const colorLevels =
+        document.getElementById("colorLevels");
+
+    const colorLevelsValue =
+        document.getElementById("colorLevelsValue");
+
+    const downsample =
+        document.getElementById("downsample");
+
+    const downsampleValue =
+        document.getElementById("downsampleValue");
 
     const progressWrap =
         document.getElementById("progressWrap");
@@ -1193,14 +1314,52 @@
         drawFrame(
             blurPreviewImage.getContext("2d"),
             firstFrame,
-            blurPreviewImage.width,
-            blurPreviewImage.height,
+            116,
+            116,
             firstFrameFilter.value,
-            Number(blurAmount.value)
+            Number(blurAmount.value),
+            Number(colorLevels.value),
+            Number(downsample.value)
         );
         blurPreviewText.textContent =
             `${firstFrame.name} · ${firstFrameFilter.options[firstFrameFilter.selectedIndex].text} · ${blurAmount.value}`;
 
+    }
+
+    function openPreviewModal() {
+
+        const firstFrame = frames[0];
+
+        if (!firstFrame) {
+            return;
+        }
+
+        const scale = Math.min(
+            1,
+            1200 / firstFrame.width,
+            1200 / firstFrame.height
+        );
+        const width = Math.max(1, Math.round(firstFrame.width * scale));
+        const height = Math.max(1, Math.round(firstFrame.height * scale));
+
+        previewModalCanvas.width = width;
+        previewModalCanvas.height = height;
+        drawFrame(
+            previewModalCanvas.getContext("2d"),
+            firstFrame,
+            width,
+            height,
+            firstFrameFilter.value,
+            Number(blurAmount.value),
+            Number(colorLevels.value),
+            Number(downsample.value)
+        );
+        previewModal.classList.add("show");
+
+    }
+
+    function closePreviewModal() {
+        previewModal.classList.remove("show");
     }
 
 
@@ -1638,6 +1797,31 @@
 
     firstFrameFilter.addEventListener("change", updateBlurPreview);
 
+    blurPreview.addEventListener("click", openPreviewModal);
+    previewModalClose.addEventListener("click", closePreviewModal);
+    previewModal.addEventListener("click", event => {
+        if (event.target === previewModal) {
+            closePreviewModal();
+        }
+    });
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+            closePreviewModal();
+        }
+    });
+
+    colorLevels.addEventListener("input", () => {
+        colorLevelsValue.textContent =
+            `${colorLevels.value} 级`;
+        updateBlurPreview();
+    });
+
+    downsample.addEventListener("input", () => {
+        downsampleValue.textContent =
+            `${downsample.value}x`;
+        updateBlurPreview();
+    });
+
 
     /*
      * ==========================================
@@ -1719,7 +1903,9 @@
         width,
         height,
         filterType = "blur",
-        filterAmount = 0
+        filterAmount = 0,
+        colorLevelCount = 16,
+        downsampleFactor = 1
     ) {
 
         /*
@@ -1779,7 +1965,15 @@
             );
 
             ctx.restore();
-            applyFrameFilter(ctx, width, height, filterType, filterAmount);
+            applyFrameFilter(
+                ctx,
+                width,
+                height,
+                filterType,
+                filterAmount,
+                colorLevelCount,
+                downsampleFactor
+            );
 
             return;
 
@@ -1827,7 +2021,15 @@
         );
 
         ctx.restore();
-        applyFrameFilter(ctx, width, height, filterType, filterAmount);
+        applyFrameFilter(
+            ctx,
+            width,
+            height,
+            filterType,
+            filterAmount,
+            colorLevelCount,
+            downsampleFactor
+        );
 
     }
 
@@ -1943,7 +2145,9 @@
                         width,
                         height,
                         outputFrames[i].filterType || "blur",
-                        outputFrames[i].filterAmount || 0
+                        outputFrames[i].filterAmount || 0,
+                        Number(colorLevels.value),
+                        Number(downsample.value)
                     );
                 
                     const imageData = ctx.getImageData(
