@@ -125,6 +125,51 @@ export function applyFrameFilter(
             sourceData = ctx.getImageData(0, 0, width, height).data;
         }
 
+        if (filterType === "pixelArt" && filterAmount > 1) {
+            const pixelSize = Math.max(
+                2,
+                Math.min(64, Math.round(filterAmount))
+            );
+            const pixelCanvas = document.createElement("canvas");
+            const pixelWidth = Math.max(1, Math.ceil(width / pixelSize));
+            const pixelHeight = Math.max(1, Math.ceil(height / pixelSize));
+            pixelCanvas.width = pixelWidth;
+            pixelCanvas.height = pixelHeight;
+
+            const pixelContext = pixelCanvas.getContext("2d", {
+                willReadFrequently: true
+            });
+            pixelContext.imageSmoothingEnabled = false;
+            pixelContext.drawImage(
+                ctx.canvas,
+                0,
+                0,
+                width,
+                height,
+                0,
+                0,
+                pixelWidth,
+                pixelHeight
+            );
+
+            ctx.clearRect(0, 0, width, height);
+            ctx.save();
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(
+                pixelCanvas,
+                0,
+                0,
+                pixelWidth,
+                pixelHeight,
+                0,
+                0,
+                width,
+                height
+            );
+            ctx.restore();
+            sourceData = ctx.getImageData(0, 0, width, height).data;
+        }
+
         const output = ctx.createImageData(width, height);
         const outputData = output.data;
         const quality = Math.max(
