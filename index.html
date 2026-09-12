@@ -29,7 +29,35 @@
             --text: #1d1b20;
             --text-secondary: #49454f;
             --danger: #ba1a1a;
+            --app-bar: rgba(255, 251, 254, .92);
+            --border: #e2dce4;
+            --border-subtle: #e6e0e9;
+            --input-surface: #ffffff;
+            --soft-surface: #e8def8;
+            --soft-text: #4f378b;
+            --drop-border: #aaa2ad;
+            --progress-track: #ddd5e0;
             --radius: 20px;
+        }
+
+        :root[data-theme="dark"] {
+            --primary: #d0bcff;
+            --primary-hover: #e3d6ff;
+            --surface: #141218;
+            --surface-container: #211f26;
+            --surface-container-high: #2b2931;
+            --outline: #938f99;
+            --text: #e7e0e8;
+            --text-secondary: #c9c1cc;
+            --danger: #ffb4ab;
+            --app-bar: rgba(20, 18, 24, .92);
+            --border: #49454f;
+            --border-subtle: #38343d;
+            --input-surface: #2b2931;
+            --soft-surface: #4f378b;
+            --soft-text: #eadcff;
+            --drop-border: #938f99;
+            --progress-track: #49454f;
         }
 
         body {
@@ -55,8 +83,8 @@
             display: flex;
             align-items: center;
             padding: 0 28px;
-            border-bottom: 1px solid #e6e0e9;
-            background: rgba(255, 251, 254, .92);
+            border-bottom: 1px solid var(--border-subtle);
+            background: var(--app-bar);
             backdrop-filter: blur(12px);
             position: sticky;
             top: 0;
@@ -90,8 +118,28 @@
         }
 
         .page-tab.active {
-            background: #e8def8;
-            color: #4f378b;
+            background: var(--soft-surface);
+            color: var(--soft-text);
+        }
+
+        .theme-control {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            height: 38px;
+            margin-left: 8px;
+            padding: 0 10px;
+            border: 1px solid var(--border);
+            border-radius: 19px;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .theme-control:hover {
+            background: var(--soft-surface);
+            color: var(--soft-text);
         }
 
         .page-section {
@@ -124,9 +172,9 @@
 
         .extract-card {
             padding: 10px;
-            border: 1px solid #e2dce4;
+            border: 1px solid var(--border);
             border-radius: 16px;
-            background: white;
+            background: var(--input-surface);
         }
 
         .extract-image {
@@ -134,7 +182,7 @@
             height: 140px;
             object-fit: contain;
             border-radius: 10px;
-            background: #f3edf7;
+            background: var(--surface-container);
         }
 
         .extract-name {
@@ -208,7 +256,7 @@
         ========================= */
 
         .drop-zone {
-            border: 2px dashed #aaa2ad;
+            border: 2px dashed var(--drop-border);
             border-radius: 20px;
             min-height: 190px;
             display: flex;
@@ -276,10 +324,10 @@
         }
 
         .frame {
-            background: white;
+            background: var(--input-surface);
             border-radius: 16px;
             overflow: hidden;
-            border: 1px solid #e2dce4;
+            border: 1px solid var(--border);
             position: relative;
             user-select: none;
             cursor: grab;
@@ -402,7 +450,7 @@
             height: 50px;
             border-radius: 12px;
             border: 1px solid var(--outline);
-            background: white;
+            background: var(--input-surface);
             padding: 0 14px;
             font-size: 15px;
             color: var(--text);
@@ -506,9 +554,9 @@
             gap: 10px;
             margin-top: 12px;
             padding: 8px;
-            border: 1px solid #e2dce4;
+            border: 1px solid var(--border);
             border-radius: 12px;
-            background: white;
+            background: var(--input-surface);
         }
 
         .blur-preview.show {
@@ -631,12 +679,12 @@
         }
 
         .button-tonal {
-            background: #e8def8;
-            color: #4f378b;
+            background: var(--soft-surface);
+            color: var(--soft-text);
         }
 
         .button-tonal:hover {
-            background: #ded0f0;
+            background: var(--surface-container-high);
         }
 
         .button-text {
@@ -710,7 +758,7 @@
             width: 100%;
             height: 6px;
             border-radius: 5px;
-            background: #ddd5e0;
+            background: var(--progress-track);
             overflow: hidden;
         }
 
@@ -823,6 +871,16 @@
     <nav class="page-tabs" aria-label="功能分页">
         <button class="page-tab active" id="composeTab" type="button">APNG 合成</button>
         <button class="page-tab" id="extractTab" type="button">图片拆帧</button>
+        <button
+            class="theme-control"
+            id="themeToggle"
+            type="button"
+            aria-label="切换配色方案"
+            title="切换配色方案"
+        >
+            <span class="material-icons" id="themeIcon">dark_mode</span>
+            <span id="themeLabel">跟随系统</span>
+        </button>
     </nav>
 </header>
 
@@ -927,7 +985,7 @@
                 <input
                     type="number"
                     id="frameDelay"
-                    value="30000"
+                    value="1000"
                     min="1"
                     max="3600000"
                     step="1"
@@ -938,8 +996,8 @@
                     font-size: 12px;
                     color: #49454f;
                 ">
-                    第 2 帧开始，每一帧使用相同的停留时间。
-                    例如 60000 = 60 秒。
+                    动画帧使用相同的停留时间，预览图不计入动画时长。
+                    例如 1000 = 1 秒。
                 </div>
             </div>
 
@@ -1037,17 +1095,17 @@
             <div class="field">
                 <div class="switch-row">
                     <div>
-                        <div class="switch-text">插入滤镜首帧</div>
+                        <div class="switch-text">添加滤镜预览帧</div>
                         <div class="card-description" style="margin:4px 0 0">
-                            复制第一帧并应用滤镜后，插入到原图之前。
+                            将滤镜结果作为预览图显示，动画循环时从原图开始。
                         </div>
                     </div>
 
-                    <label class="switch-control" title="插入滤镜首帧">
+                    <label class="switch-control" title="添加滤镜预览帧">
                         <input
                             type="checkbox"
                             id="blurFirstFrame"
-                            aria-label="插入滤镜首帧"
+                            aria-label="添加滤镜预览帧"
                         >
                         <span class="switch-track"></span>
                     </label>
@@ -1302,7 +1360,10 @@
 
 <script type="module">
     import { applyFrameFilter } from "./src/filters.js";
-    import { patchAPNGDelays } from "./src/apng.js";
+    import {
+        combineDefaultImageWithAPNG,
+        patchAPNGDelays
+    } from "./src/apng.js";
 
     /*
      * ==========================================
@@ -1431,6 +1492,15 @@
     const extractPage =
         document.getElementById("extractPage");
 
+    const themeToggle =
+        document.getElementById("themeToggle");
+
+    const themeIcon =
+        document.getElementById("themeIcon");
+
+    const themeLabel =
+        document.getElementById("themeLabel");
+
     const extractFileInput =
         document.getElementById("extractFileInput");
 
@@ -1460,6 +1530,65 @@
     let dragIndex = null;
 
     let extractedPngs = [];
+
+    const systemThemeQuery =
+        window.matchMedia("(prefers-color-scheme: dark)");
+    let themePreference =
+        localStorage.getItem("apng-theme") || "system";
+
+    function applyTheme() {
+        const isDark =
+            themePreference === "dark" ||
+            (
+                themePreference === "system" &&
+                systemThemeQuery.matches
+            );
+
+        document.documentElement.toggleAttribute(
+            "data-theme",
+            isDark
+        );
+
+        if (isDark) {
+            document.documentElement.dataset.theme = "dark";
+        } else {
+            delete document.documentElement.dataset.theme;
+        }
+
+        themeIcon.textContent =
+            themePreference === "system"
+                ? "brightness_auto"
+                : isDark
+                    ? "dark_mode"
+                    : "light_mode";
+        themeLabel.textContent =
+            themePreference === "system"
+                ? "跟随系统"
+                : isDark
+                    ? "深色"
+                    : "浅色";
+        themeToggle.title =
+            `当前：${themeLabel.textContent}，点击切换`;
+    }
+
+    themeToggle.addEventListener("click", () => {
+        themePreference =
+            themePreference === "system"
+                ? "dark"
+                : themePreference === "dark"
+                    ? "light"
+                    : "system";
+        localStorage.setItem("apng-theme", themePreference);
+        applyTheme();
+    });
+
+    systemThemeQuery.addEventListener("change", () => {
+        if (themePreference === "system") {
+            applyTheme();
+        }
+    });
+
+    applyTheme();
 
     function switchPage(page) {
         const composeActive = page === "compose";
@@ -2413,7 +2542,7 @@
                 1,
                 Math.min(
                     3600000,
-                    Number(frameDelayInput.value) || 30000
+                    Number(frameDelayInput.value) || 1000
                 )
             );
 
@@ -2468,64 +2597,72 @@
                         willReadFrequently: true
                     });
 
+                const useDefaultImageStructure =
+                    blurFirstFrame.checked;
+                const framesToEncode =
+                    useDefaultImageStructure
+                        ? frames
+                        : outputFrames;
+                const delays = useDefaultImageStructure
+                    ? framesToEncode.map(() => delay)
+                    : outputFrames.map((_, index) =>
+                        index === 0 ? 0 : delay
+                    );
 
-                // const buffers = [];
                 const buffers = [
-                    // frame1RGBA,
-                    // frame2RGBA,
-                    // frame3RGBA
                 ];
-                // 第一帧 0ms
-                // 第二帧开始全部使用相同 delay
-                const delays = outputFrames.map((_, index) => {
-                    return index === 0 ? 0 : delay;
-                });
-
-
-                for (let i = 0; i < outputFrames.length; i++) {
-                
+                const renderFrame = frame => {
                     drawFrame(
                         ctx,
-                        outputFrames[i],
+                        frame,
                         width,
                         height,
-                        outputFrames[i].filterEnabled
-                            ? outputFrames[i].filterType
+                        frame.filterEnabled
+                            ? frame.filterType
                             : "blur",
-                        outputFrames[i].filterEnabled
-                            ? outputFrames[i].filterAmount
+                        frame.filterEnabled
+                            ? frame.filterAmount
                             : 0,
-                        outputFrames[i].filterEnabled
+                        frame.filterEnabled
                             ? Number(colorLevels.value)
                             : 256,
-                        outputFrames[i].filterEnabled
+                        frame.filterEnabled
                             ? Number(downsample.value)
                             : 1,
-                        outputFrames[i].filterEnabled
+                        frame.filterEnabled
                             ? Number(filterQuality.value)
                             : 100
                     );
-                
-                    const imageData = ctx.getImageData(
-                        0,
-                        0,
-                        width,
-                        height
+
+                    return new Uint8Array(
+                        ctx.getImageData(
+                            0,
+                            0,
+                            width,
+                            height
+                        ).data
                     );
-                
-                    buffers.push(
-                        new Uint8Array(imageData.data)
-                    );
+                };
+
+                let defaultImageBuffer = null;
+
+                if (useDefaultImageStructure) {
+                    defaultImageBuffer = renderFrame(outputFrames[0]);
+                }
+
+
+                for (let i = 0; i < framesToEncode.length; i++) {
+                    buffers.push(renderFrame(framesToEncode[i]));
                 
                     const progress = Math.round(
-                        ((i + 1) / outputFrames.length) * 80
+                        ((i + 1) / framesToEncode.length) * 80
                     );
                 
                     progressBar.style.width =
                         progress + "%";
                 
                     progressText.textContent =
-                        `正在处理第 ${i + 1} / ${outputFrames.length} 帧`;
+                        `正在处理第 ${i + 1} / ${framesToEncode.length} 帧`;
                 
                     await new Promise(resolve =>
                         setTimeout(resolve, 0)
@@ -2541,28 +2678,39 @@
                     "正在编码 APNG…";
 
 
-                // const pngBuffer = UPNG.encode(
-                //     buffers,
-                //     width,
-                //     height,
-                //     0,
-                //     0,
-                //     delays
-                // );
+                const apngBuffers =
+                    useDefaultImageStructure && buffers.length === 1
+                        ? [buffers[0], buffers[0]]
+                        : buffers;
+                const apngDelays =
+                    useDefaultImageStructure && delays.length === 1
+                        ? [delays[0], delays[0]]
+                        : delays;
                 let pngBuffer = UPNG.encode(
-                    buffers,
+                    apngBuffers,
                     width,
                     height,
                     0,
-                    delays
+                    apngDelays
                 );
 
-                // 把 UPNG 默认的「毫秒 / 1000」改成更兼容的最简分数。
-                // 例如 6000ms -> 6/1，60000ms -> 60/1。
                 pngBuffer = patchAPNGDelays(
                     pngBuffer,
-                    delays
+                    apngDelays
                 );
+
+                if (useDefaultImageStructure) {
+                    const defaultPNG = UPNG.encode(
+                        [defaultImageBuffer],
+                        width,
+                        height,
+                        0
+                    );
+                    pngBuffer = combineDefaultImageWithAPNG(
+                        defaultPNG,
+                        pngBuffer
+                    );
+                }
 
                 const test = UPNG.decode(pngBuffer);
 
@@ -2620,7 +2768,7 @@
                     `${outputFrames.length} 帧 · ` +
                     (
                         outputFrames.length > 1
-                            ? `第 2 帧起 ${delay} ms/帧 · `
+                            ? `动画帧 ${delay} ms/帧 · `
                             : "单帧输出 · "
                     ) +
                     `${sizeKB.toFixed(1)} KB`;

@@ -186,3 +186,162 @@ export function patchAPNGDelays(pngBuffer, delays) {
 
         return data.buffer;
     }
+
+
+function readChunkType(data, offset) {
+        return String.fromCharCode(
+            data[offset + 4],
+            data[offset + 5],
+            data[offset + 6],
+            data[offset + 7]
+        );
+    }
+
+
+function createChunk(type, chunkData) {
+        const typeBytes = new TextEncoder().encode(type);
+        const data = new Uint8Array(chunkData);
+        const chunk = new Uint8Array(data.length + 12);
+        const view = new DataView(chunk.buffer);
+
+        view.setUint32(0, data.length, false);
+        chunk.set(typeBytes, 4);
+        chunk.set(data, 8);
+        writeU32BE(
+            view,
+            data.length + 8,
+            crc32(chunk.subarray(4, data.length + 8))
+        );
+
+        return chunk;
+    }
+
+
+function getChunks(pngBuffer) {
+        const data = new Uint8Array(pngBuffer);
+        const chunks = [];
+        let offset = 8;
+
+        while (offset + 12 <= data.length) {
+                const length = new DataView(
+                    data.buffer,
+                    data.byteOffset + offset,
+                    4
+                ).getUint32(0, false);
+
+                if (offset + length + 12 > data.length) {
+                        throw new Error("PNG chunk 数据不完整");
+                }
+
+                chunks.push({
+                    type: readChunkType(data, offset),
+                    data: data.slice(offset + 8, offset + 8 + length)
+                });
+                offset += length + 12;
+        }
+
+        if (offset !== data.length) {
+                throw new Error("PNG 数据尾部不完整");
+        }
+
+        return chunks;
+}
+
+
+function setU32(data, offset, value) {
+        new DataView(
+            data.buffer,
+            data.byteOffset,
+            data.byteLength
+        ).setUint32(offset, value >>> 0, false);
+}
+
+
+export function combineDefaultImageWithAPNG(
+        defaultPNGBuffer,
+        animationPNGBuffer
+    ) {
+        const defaultChunks = getChunks(defaultPNGBuffer);
+        const animationChunks = getChunks(animationPNGBuffer);
+        const animationControl = animationChunks.find(
+            chunk => chunk.type === "acTL"
+        );
+        const animationFrames = animationChunks.filter(
+            chunk => chunk.type === "fcTL"
+        );
+
+        if (!animationControl || animationFrames.length === 0) {
+                throw new Error("动画 PNG 缺少 APNG 控制信息");
+        }
+
+        const output = [
+                new Uint8Array([
+                    137, 80, 78, 71, 13, 10, 26, 10
+                ])
+        ];
+        const controlData = animationControl.data.slice();
+        setU32(controlData, 0, animationFrames.length);
+
+        let frameIndex = -1;
+        let sequenceNumber = 0;
+        let controlInserted = false;
+
+        for (const chunk of defaultChunks) {
+                if (
+                    chunk.type === "IEND" ||
+                    chunk.type === "acTL" ||
+                    chunk.type === "fcTL" ||
+                    chunk.type === "fdAT"
+                ) {
+                        continue;
+                }
+
+                if (chunk.type === "IDAT" && !controlInserted) {
+                        output.push(createChunk("acTL", controlData));
+                        controlInserted = true;
+                }
+
+                output.push(createChunk(chunk.type, chunk.data));
+        }
+
+        for (const chunk of animationChunks) {
+                if (chunk.type === "fcTL") {
+                        frameIndex++;
+                        const frameControl = chunk.data.slice();
+                        setU32(frameControl, 0, sequenceNumber++);
+                        output.push(createChunk("fcTL", frameControl));
+                        continue;
+                }
+
+                if (chunk.type === "IDAT" && frameIndex === 0) {
+                        const frameData = new Uint8Array(chunk.data.length + 4);
+                        setU32(frameData, 0, sequenceNumber++);
+                        frameData.set(chunk.data, 4);
+                        output.push(createChunk("fdAT", frameData));
+                        continue;
+                }
+
+                if (chunk.type === "fdAT") {
+                        const frameData = new Uint8Array(chunk.data.length);
+                        setU32(frameData, 0, sequenceNumber++);
+                        frameData.set(chunk.data.slice(4), 4);
+                        output.push(createChunk("fdAT", frameData));
+                }
+        }
+
+        output.push(createChunk("IEND", new Uint8Array()));
+
+        const resultLength = output.reduce(
+                (length, chunk) => length + chunk.length,
+                0
+        );
+        const result = new Uint8Array(resultLength);
+        let resultOffset = 0;
+
+        for (const chunk of output) {
+                result.set(chunk, resultOffset);
+                resultOffset += chunk.length;
+        }
+
+        return result.buffer;
+}
