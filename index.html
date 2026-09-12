@@ -2400,6 +2400,7 @@
                         {
                             ...frames[0],
                             name: `${frames[0].name}（滤镜首帧）`,
+                            filterEnabled: true,
                             filterType: firstFrameFilter.value,
                             filterAmount: Number(blurAmount.value)
                         },
@@ -2487,11 +2488,21 @@
                         outputFrames[i],
                         width,
                         height,
-                        outputFrames[i].filterType || "blur",
-                        outputFrames[i].filterAmount || 0,
-                        Number(colorLevels.value),
-                        Number(downsample.value),
-                        Number(filterQuality.value)
+                        outputFrames[i].filterEnabled
+                            ? outputFrames[i].filterType
+                            : "blur",
+                        outputFrames[i].filterEnabled
+                            ? outputFrames[i].filterAmount
+                            : 0,
+                        outputFrames[i].filterEnabled
+                            ? Number(colorLevels.value)
+                            : 256,
+                        outputFrames[i].filterEnabled
+                            ? Number(downsample.value)
+                            : 1,
+                        outputFrames[i].filterEnabled
+                            ? Number(filterQuality.value)
+                            : 100
                     );
                 
                     const imageData = ctx.getImageData(
