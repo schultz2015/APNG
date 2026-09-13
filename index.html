@@ -894,13 +894,16 @@
             .theme-control {
                 grid-area: theme;
                 margin-left: 0;
-                padding: 0 8px;
+                width: 32px;
                 height: 32px;
+                padding: 0;
+                justify-content: center;
                 background: transparent;
                 border-color: var(--border-subtle);
                 opacity: .8;
                 flex-shrink: 0;
                 justify-self: end;
+                border-radius: 50%;
             }
 
             .theme-control:hover {
@@ -908,11 +911,7 @@
             }
 
             .theme-control #themeLabel {
-                display: inline-block;
-                max-width: 7ch;
-                line-height: 1.2;
-                white-space: normal;
-                word-break: break-word;
+                display: none;
             }
 
             .container {
