@@ -1444,7 +1444,7 @@
 <script type="module">
     import { applyFrameFilter } from "./src/filters.js";
     import {
-        separateFirstFrameAsDefaultImage,
+        combineDefaultImageWithAPNG,
         patchAPNGDelays
     } from "./src/apng.js";
 
@@ -2683,12 +2683,16 @@
                 const useDefaultImageStructure =
                     blurFirstFrame.checked;
                 const framesToEncode =
-                    useDefaultImageStructure && frames.length === 1
-                        ? [...outputFrames, frames[0]]
+                    useDefaultImageStructure
+                        ? frames.length === 1
+                            ? [frames[0], frames[0]]
+                            : frames
                         : outputFrames;
-                const delays = framesToEncode.map((_, index) =>
-                    index === 0 ? 0 : delay
-                );
+                const delays = useDefaultImageStructure
+                    ? framesToEncode.map(() => delay)
+                    : framesToEncode.map((_, index) =>
+                        index === 0 ? 0 : delay
+                    );
 
                 const buffers = [
                 ];
@@ -2723,6 +2727,12 @@
                     ).data.buffer;
                 };
 
+                let defaultImageBuffer = null;
+
+                if (useDefaultImageStructure) {
+                    defaultImageBuffer = renderFrame(outputFrames[0]);
+                }
+
                 for (let i = 0; i < framesToEncode.length; i++) {
                     buffers.push(renderFrame(framesToEncode[i]));
                 
@@ -2750,22 +2760,36 @@
                     "正在编码 APNG…";
 
 
-                let pngBuffer = UPNG.encode(
+                let animationPNGBuffer = UPNG.encode(
                     buffers,
                     width,
                     height,
                     0,
+                    delays,
+                    undefined,
+                    useDefaultImageStructure
+                );
+
+                animationPNGBuffer = patchAPNGDelays(
+                    animationPNGBuffer,
                     delays
                 );
 
-                pngBuffer = patchAPNGDelays(
-                    pngBuffer,
-                    delays
-                );
+                let pngBuffer = animationPNGBuffer;
 
                 if (useDefaultImageStructure) {
-                    pngBuffer = separateFirstFrameAsDefaultImage(
-                        pngBuffer
+                    const defaultPNGBuffer = UPNG.encode(
+                        [defaultImageBuffer, defaultImageBuffer],
+                        width,
+                        height,
+                        0,
+                        [0, 1],
+                        undefined,
+                        true
+                    );
+                    pngBuffer = combineDefaultImageWithAPNG(
+                        defaultPNGBuffer,
+                        animationPNGBuffer
                     );
                 }
 
@@ -2822,9 +2846,9 @@
 
                 resultInfo.textContent =
                     `${width} × ${height} · ` +
-                    `${outputFrames.length} 帧 · ` +
+                    `${framesToEncode.length} 帧 · ` +
                     (
-                        outputFrames.length > 1
+                        framesToEncode.length > 1
                             ? `动画帧 ${delay} ms/帧 · `
                             : "单帧输出 · "
                     ) +

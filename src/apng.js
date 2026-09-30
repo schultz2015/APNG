@@ -257,7 +257,11 @@ function setU32(data, offset, value) {
 }
 
 
-export function separateFirstFrameAsDefaultImage(animationPNGBuffer) {
+export function combineDefaultImageWithAPNG(
+        defaultPNGBuffer,
+        animationPNGBuffer
+    ) {
+        const defaultChunks = getChunks(defaultPNGBuffer);
         const animationChunks = getChunks(animationPNGBuffer);
         const animationControl = animationChunks.find(
             chunk => chunk.type === "acTL"
@@ -266,43 +270,51 @@ export function separateFirstFrameAsDefaultImage(animationPNGBuffer) {
             chunk => chunk.type === "fcTL"
         );
 
-        if (!animationControl || animationFrames.length < 2) {
-                throw new Error("APNG 至少需要预览帧和一张动画帧");
+        if (!animationControl || animationFrames.length === 0) {
+            throw new Error("动画 PNG 缺少 APNG 控制信息");
         }
 
         const output = [
             new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10])
         ];
         const controlData = animationControl.data.slice();
-        setU32(controlData, 0, animationFrames.length - 1);
+        setU32(controlData, 0, animationFrames.length);
         let frameIndex = -1;
         let sequenceNumber = 0;
         let controlInserted = false;
 
-        for (const chunk of animationChunks) {
-            if (chunk.type === "IEND" || chunk.type === "acTL") {
+        for (const chunk of defaultChunks) {
+            if (
+                chunk.type === "IEND" ||
+                chunk.type === "acTL" ||
+                chunk.type === "fcTL" ||
+                chunk.type === "fdAT"
+            ) {
                 continue;
             }
 
+            if (chunk.type === "IDAT" && !controlInserted) {
+                output.push(createChunk("acTL", controlData));
+                controlInserted = true;
+            }
+
+            output.push(createChunk(chunk.type, chunk.data));
+        }
+
+        for (const chunk of animationChunks) {
             if (chunk.type === "fcTL") {
                 frameIndex++;
-                if (frameIndex === 0) {
-                    continue;
-                }
-
                 const frameControl = chunk.data.slice();
                 setU32(frameControl, 0, sequenceNumber++);
                 output.push(createChunk("fcTL", frameControl));
                 continue;
             }
 
-            if (chunk.type === "IDAT") {
-                if (!controlInserted) {
-                    output.push(createChunk("acTL", controlData));
-                    controlInserted = true;
-                }
-
-                output.push(createChunk("IDAT", chunk.data));
+            if (chunk.type === "IDAT" && frameIndex === 0) {
+                const frameData = new Uint8Array(chunk.data.length + 4);
+                setU32(frameData, 0, sequenceNumber++);
+                frameData.set(chunk.data, 4);
+                output.push(createChunk("fdAT", frameData));
                 continue;
             }
 
@@ -311,14 +323,11 @@ export function separateFirstFrameAsDefaultImage(animationPNGBuffer) {
                 setU32(frameData, 0, sequenceNumber++);
                 frameData.set(chunk.data.slice(4), 4);
                 output.push(createChunk("fdAT", frameData));
-                continue;
             }
-
-            output.push(createChunk(chunk.type, chunk.data));
         }
 
         if (!controlInserted) {
-            throw new Error("APNG 缺少默认图像数据");
+            throw new Error("PNG 缺少默认图像数据");
         }
 
         output.push(createChunk("IEND", new Uint8Array()));
