@@ -1227,7 +1227,7 @@
                         type="range"
                         id="blurAmount"
                         min="1"
-                        max="40"
+                        max="100"
                         value="20"
                         step="1"
                     >
@@ -1444,7 +1444,7 @@
 <script type="module">
     import { applyFrameFilter } from "./src/filters.js";
     import {
-        combineDefaultImageWithAPNG,
+        separateFirstFrameAsDefaultImage,
         patchAPNGDelays
     } from "./src/apng.js";
 
@@ -2683,14 +2683,12 @@
                 const useDefaultImageStructure =
                     blurFirstFrame.checked;
                 const framesToEncode =
-                    useDefaultImageStructure
-                        ? frames
+                    useDefaultImageStructure && frames.length === 1
+                        ? [...outputFrames, frames[0]]
                         : outputFrames;
-                const delays = useDefaultImageStructure
-                    ? framesToEncode.map(() => delay)
-                    : outputFrames.map((_, index) =>
-                        index === 0 ? 0 : delay
-                    );
+                const delays = framesToEncode.map((_, index) =>
+                    index === 0 ? 0 : delay
+                );
 
                 const buffers = [
                 ];
@@ -2717,22 +2715,13 @@
                             : 100
                     );
 
-                    return new Uint8Array(
-                        ctx.getImageData(
-                            0,
-                            0,
-                            width,
-                            height
-                        ).data
-                    );
+                    return ctx.getImageData(
+                        0,
+                        0,
+                        width,
+                        height
+                    ).data.buffer;
                 };
-
-                let defaultImageBuffer = null;
-
-                if (useDefaultImageStructure) {
-                    defaultImageBuffer = renderFrame(outputFrames[0]);
-                }
-
 
                 for (let i = 0; i < framesToEncode.length; i++) {
                     buffers.push(renderFrame(framesToEncode[i]));
@@ -2761,36 +2750,21 @@
                     "正在编码 APNG…";
 
 
-                const apngBuffers =
-                    useDefaultImageStructure && buffers.length === 1
-                        ? [buffers[0], buffers[0]]
-                        : buffers;
-                const apngDelays =
-                    useDefaultImageStructure && delays.length === 1
-                        ? [delays[0], delays[0]]
-                        : delays;
                 let pngBuffer = UPNG.encode(
-                    apngBuffers,
+                    buffers,
                     width,
                     height,
                     0,
-                    apngDelays
+                    delays
                 );
 
                 pngBuffer = patchAPNGDelays(
                     pngBuffer,
-                    apngDelays
+                    delays
                 );
 
                 if (useDefaultImageStructure) {
-                    const defaultPNG = UPNG.encode(
-                        [defaultImageBuffer],
-                        width,
-                        height,
-                        0
-                    );
-                    pngBuffer = combineDefaultImageWithAPNG(
-                        defaultPNG,
+                    pngBuffer = separateFirstFrameAsDefaultImage(
                         pngBuffer
                     );
                 }

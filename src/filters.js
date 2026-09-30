@@ -23,6 +23,9 @@ export function applyFrameFilter(
         if (filterType === "mosaic" && filterAmount) {
             const output = ctx.createImageData(width, height);
             const outputData = output.data;
+            for (let i = 3; i < outputData.length; i += 4) {
+                outputData[i] = 255;
+            }
             const cellSize = Math.max(4, Math.round(filterAmount));
             const radius = cellSize / 2;
             const sample = (x, y) =>
