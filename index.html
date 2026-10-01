@@ -37,6 +37,8 @@
             --soft-text: #4f378b;
             --drop-border: #aaa2ad;
             --progress-track: #ddd5e0;
+            --checkerboard-base: #ffffff;
+            --checkerboard-cell: #e6e6e6;
             --radius: 20px;
         }
 
@@ -58,6 +60,19 @@
             --soft-text: #eadcff;
             --drop-border: #938f99;
             --progress-track: #49454f;
+            --checkerboard-base: #1c1b1f;
+            --checkerboard-cell: #343238;
+        }
+
+        .transparency-checker {
+            background-color: var(--checkerboard-base);
+            background-image:
+                linear-gradient(45deg, var(--checkerboard-cell) 25%, transparent 25%),
+                linear-gradient(-45deg, var(--checkerboard-cell) 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, var(--checkerboard-cell) 75%),
+                linear-gradient(-45deg, transparent 75%, var(--checkerboard-cell) 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0;
         }
 
         body {
@@ -204,7 +219,7 @@
             height: 140px;
             object-fit: contain;
             border-radius: 10px;
-            background: var(--surface-container);
+            background-color: var(--checkerboard-base);
         }
 
         .extract-name {
@@ -387,13 +402,6 @@
             width: 100%;
             height: 130px;
             object-fit: contain;
-            background:
-                linear-gradient(45deg, #eee 25%, transparent 25%),
-                linear-gradient(-45deg, #eee 25%, transparent 25%),
-                linear-gradient(45deg, transparent 75%, #eee 75%),
-                linear-gradient(-45deg, transparent 75%, #eee 75%);
-            background-size: 20px 20px;
-            background-position: 0 0, 0 10px, 10px -10px, -10px 0;
         }
 
         .frame-info {
@@ -602,16 +610,8 @@
             width: 58px;
             height: 58px;
             flex: 0 0 auto;
-            object-fit: cover;
+            object-fit: contain;
             border-radius: 8px;
-            filter: blur(12px);
-            background:
-                linear-gradient(45deg, #eee 25%, transparent 25%),
-                linear-gradient(-45deg, #eee 25%, transparent 25%),
-                linear-gradient(45deg, transparent 75%, #eee 75%),
-                linear-gradient(-45deg, transparent 75%, #eee 75%);
-            background-size: 12px 12px;
-            background-position: 0 0, 0 6px, 6px -6px, -6px 0;
         }
 
         .blur-preview-canvas {
@@ -657,15 +657,23 @@
             position: fixed;
             inset: 0;
             z-index: 80;
-            display: none;
+            width: 100%;
+            height: 100%;
+            max-width: none;
+            max-height: none;
             align-items: center;
             justify-content: center;
             padding: 28px;
+            border: 0;
             background: rgba(29, 27, 32, .78);
         }
 
-        .preview-modal.show {
+        .preview-modal[open] {
             display: flex;
+        }
+
+        .preview-modal::backdrop {
+            background: transparent;
         }
 
         .preview-modal-content {
@@ -674,7 +682,7 @@
             max-height: 100%;
             padding: 12px;
             border-radius: 18px;
-            background: var(--surface);
+            background-color: var(--checkerboard-base);
             box-shadow: 0 10px 40px rgba(0, 0, 0, .3);
         }
 
@@ -798,14 +806,6 @@
             overflow: hidden;
             border: 1px solid var(--border);
             border-radius: 20px;
-            background-color: var(--surface);
-            background-image:
-                linear-gradient(45deg, var(--surface-container-high) 25%, transparent 25%),
-                linear-gradient(-45deg, var(--surface-container-high) 25%, transparent 25%),
-                linear-gradient(45deg, transparent 75%, var(--surface-container-high) 75%),
-                linear-gradient(-45deg, transparent 75%, var(--surface-container-high) 75%);
-            background-size: 20px 20px;
-            background-position: 0 0, 0 10px, 10px -10px, -10px 0;
         }
 
         .halftone-preview-canvas {
@@ -815,6 +815,12 @@
             min-width: 0;
             min-height: 0;
             object-fit: contain;
+            cursor: zoom-in;
+        }
+
+        .halftone-preview-canvas:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: -4px;
         }
 
         .halftone-channel-panel {
@@ -1431,13 +1437,6 @@
         .result-preview {
             border-radius: 16px;
             overflow: hidden;
-            background:
-                linear-gradient(45deg, #eee 25%, transparent 25%),
-                linear-gradient(-45deg, #eee 25%, transparent 25%),
-                linear-gradient(45deg, transparent 75%, #eee 75%),
-                linear-gradient(-45deg, transparent 75%, #eee 75%);
-            background-size: 20px 20px;
-            background-position: 0 0, 0 10px, 10px -10px, -10px 0;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -2037,7 +2036,7 @@
                 <div id="blurSettings" style="display:none">
                     <div class="blur-preview" id="blurPreview">
                         <canvas
-                            class="blur-preview-image blur-preview-canvas"
+                            class="blur-preview-image blur-preview-canvas transparency-checker"
                             id="blurPreviewImage"
                             width="116"
                             height="116"
@@ -2205,7 +2204,7 @@
                 id="result"
             >
 
-                <div class="result-preview">
+                <div class="result-preview transparency-checker">
 
                     <img
                         id="resultImage"
@@ -2301,12 +2300,12 @@
 
 <div class="toast" id="toast"></div>
 
-<div class="preview-modal" id="previewModal" role="dialog" aria-modal="true" aria-label="滤镜首帧大图预览">
-    <div class="preview-modal-content">
+<dialog class="preview-modal" id="previewModal" aria-label="滤镜首帧大图预览">
+    <div class="preview-modal-content transparency-checker">
         <button class="preview-modal-close" id="previewModalClose" type="button" aria-label="关闭预览">×</button>
         <canvas class="preview-modal-canvas" id="previewModalCanvas"></canvas>
     </div>
-</div>
+</dialog>
 
 <dialog class="halftone-dialog" id="halftoneDialog" aria-labelledby="halftoneDialogTitle">
     <div class="halftone-dialog-content">
@@ -2323,7 +2322,7 @@
             <section class="halftone-global-settings" aria-label="全局设置">
                 <div class="halftone-control-field">
                     <label class="halftone-control-heading" for="halftoneFrequency">
-                        <span>网点间距</span>
+                        <span>网点</span>
                         <span class="halftone-control-value" id="halftoneFrequencyValue"></span>
                     </label>
                     <input type="range" id="halftoneFrequency" min="0.1" max="20" value="3" step="0.1">
@@ -2369,12 +2368,12 @@
 
                 <div class="halftone-control-field">
                     <label class="halftone-control-heading" for="halftonePaper">
-                        <span>印刷纸张</span>
+                        <span>纸质</span>
                     </label>
                     <select id="halftonePaper">
                         <option value="warm">暖色纸</option>
                         <option value="white">白纸</option>
-                        <option value="uncoated" selected>普通印刷纸</option>
+                        <option value="uncoated" selected>印刷纸</option>
                         <option value="coated">铜版纸</option>
                     </select>
                     <div class="filter-help">纸张会影响网点底色和油墨扩散质感。</div>
@@ -2382,11 +2381,15 @@
             </section>
 
             <div class="halftone-workspace">
-                <div class="halftone-preview-stage">
+                <div class="halftone-preview-stage transparency-checker">
                     <canvas
                         class="halftone-preview-canvas"
                         id="halftonePreviewCanvas"
+                        role="button"
+                        tabindex="0"
+                        aria-haspopup="dialog"
                         aria-label="半色调实时预览"
+                        title="点击查看大图"
                     ></canvas>
                 </div>
 
@@ -2845,7 +2848,7 @@
             const card = document.createElement("div");
             card.className = "extract-card";
             const image = document.createElement("img");
-            image.className = "extract-image";
+            image.className = "extract-image transparency-checker";
             image.alt = `第 ${index + 1} 帧`;
             image.src = URL.createObjectURL(blob);
             image.addEventListener("click", () => {
@@ -3578,8 +3581,14 @@
         previewModalCanvas
             .getContext("2d")
             .drawImage(image, 0, 0, width, height);
-        previewModal.classList.add("show");
+        showPreviewModal();
 
+    }
+
+    function showPreviewModal() {
+        if (!previewModal.open) {
+            previewModal.showModal();
+        }
     }
 
     function openPreviewModal() {
@@ -3617,7 +3626,7 @@
                     filterQualityPercent: Number(filterQuality.value)
                 }
             );
-            previewModal.classList.add("show");
+            showPreviewModal();
         } catch (error) {
             console.error("滤镜大图预览失败", error);
             showToast(`预览失败：${getErrorMessage(error)}`);
@@ -3626,7 +3635,9 @@
     }
 
     function closePreviewModal() {
-        previewModal.classList.remove("show");
+        if (previewModal.open) {
+            previewModal.close();
+        }
     }
 
     async function downloadFirstFrameFilterPreview() {
@@ -3940,7 +3951,7 @@
                 </div>
 
                 <img
-                    class="frame-image"
+                    class="frame-image transparency-checker"
                     src="${frame.url}"
                 >
 
@@ -4401,6 +4412,13 @@
             openPreviewModal();
         }
     });
+    halftonePreviewCanvas.addEventListener("click", openPreviewModal);
+    halftonePreviewCanvas.addEventListener("keydown", event => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openPreviewModal();
+        }
+    });
     downloadFilterPreviewButton.addEventListener("click", event => {
         event.stopPropagation();
         downloadFirstFrameFilterPreview();
@@ -4410,6 +4428,10 @@
         if (event.target === previewModal) {
             closePreviewModal();
         }
+    });
+    previewModal.addEventListener("cancel", event => {
+        event.preventDefault();
+        closePreviewModal();
     });
     document.addEventListener("keydown", event => {
         if (event.key === "Escape") {
