@@ -252,7 +252,7 @@
             display: grid;
             grid-template-columns: minmax(0, 1fr) 360px;
             gap: 24px;
-            align-items: start;
+            align-items: stretch;
         }
 
         .card {
@@ -398,6 +398,19 @@
 
         .frame-info {
             padding: 10px 11px 12px;
+        }
+
+        .frame-role {
+            display: inline-flex;
+            align-items: center;
+            min-height: 22px;
+            margin-bottom: 7px;
+            padding: 2px 9px;
+            border-radius: 11px;
+            background: var(--soft-surface);
+            color: var(--soft-text);
+            font-size: 11px;
+            font-weight: 600;
         }
 
         .frame-name {
@@ -606,6 +619,8 @@
         }
 
         .blur-preview-label {
+            min-width: 0;
+            flex: 1;
             color: var(--text-secondary);
             font-size: 12px;
             line-height: 1.45;
@@ -613,6 +628,29 @@
 
         .blur-preview {
             cursor: zoom-in;
+        }
+
+        .blur-preview-download {
+            width: 40px;
+            height: 40px;
+            flex: 0 0 40px;
+            padding: 0;
+            border: 0;
+            border-radius: 50%;
+            background: var(--surface);
+            color: var(--primary);
+            cursor: pointer;
+            display: inline-grid;
+            place-items: center;
+        }
+
+        .blur-preview-download:hover:not(:disabled) {
+            background: var(--surface-container-high);
+        }
+
+        .blur-preview-download:disabled {
+            cursor: not-allowed;
+            opacity: .45;
         }
 
         .preview-modal {
@@ -661,6 +699,656 @@
             font-size: 22px;
         }
 
+        .halftone-dialog {
+            width: min(1120px, calc(100vw - 32px));
+            max-width: 1120px;
+            max-height: min(94vh, 900px);
+            padding: 0;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            background: var(--surface-container);
+            color: var(--text);
+            box-shadow: 0 24px 64px rgba(0, 0, 0, .32);
+        }
+
+        .halftone-dialog::backdrop {
+            background: rgba(20, 18, 24, .68);
+            backdrop-filter: blur(4px);
+        }
+
+        .halftone-dialog-content {
+            display: grid;
+            grid-template-rows: auto minmax(0, 1fr) auto;
+            max-height: min(94vh, 900px);
+        }
+
+        .halftone-dialog-header,
+        .halftone-dialog-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 18px 22px;
+        }
+
+        .halftone-dialog-header {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .halftone-dialog-title {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 650;
+        }
+
+        .halftone-dialog-subtitle {
+            margin-top: 4px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .halftone-dialog-body {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            grid-template-rows: auto minmax(0, 1fr);
+            gap: 12px;
+            min-height: 0;
+            padding: 12px 16px;
+            overflow: auto;
+        }
+
+        .halftone-global-settings {
+            display: grid;
+            grid-template-columns:
+                minmax(160px, .75fr)
+                minmax(140px, .6fr)
+                minmax(380px, 2fr)
+                minmax(150px, .7fr);
+            align-items: stretch;
+            gap: 14px;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: var(--surface);
+        }
+
+        .halftone-global-settings .halftone-control-field {
+            min-width: 0;
+            margin: 0;
+        }
+
+        .halftone-angle-field input[type="number"] {
+            width: 100%;
+        }
+
+        .halftone-workspace {
+            display: grid;
+            grid-template-columns: minmax(0, 1.15fr) minmax(320px, .95fr);
+            align-items: stretch;
+            gap: 16px;
+            min-height: 0;
+        }
+
+        .halftone-preview-stage {
+            display: grid;
+            height: clamp(260px, 38vh, 380px);
+            min-height: 0;
+            place-items: center;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background-color: var(--surface);
+            background-image:
+                linear-gradient(45deg, var(--surface-container-high) 25%, transparent 25%),
+                linear-gradient(-45deg, var(--surface-container-high) 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, var(--surface-container-high) 75%),
+                linear-gradient(-45deg, transparent 75%, var(--surface-container-high) 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+        }
+
+        .halftone-preview-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            min-width: 0;
+            min-height: 0;
+            object-fit: contain;
+        }
+
+        .halftone-channel-panel {
+            min-width: 0;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: var(--surface);
+        }
+
+        .halftone-channel-empty {
+            display: grid;
+            min-height: 220px;
+            place-content: center;
+            justify-items: center;
+            gap: 8px;
+            padding: 24px;
+            border: 1px dashed var(--border);
+            border-radius: 16px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .halftone-channel-empty[hidden] {
+            display: none;
+        }
+
+        .halftone-channel-empty .material-icons {
+            color: var(--primary);
+            font-size: 32px;
+        }
+
+        .halftone-channel-empty-title {
+            color: var(--text);
+            font-size: 15px;
+            font-weight: 650;
+        }
+
+        .halftone-control-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .halftone-control-value {
+            color: var(--primary);
+            font-weight: 650;
+            white-space: nowrap;
+        }
+
+        .halftone-dialog input[type="range"] {
+            margin: 4px 0;
+        }
+
+        .halftone-dialog input[type="number"] {
+            width: 88px;
+            min-height: 42px;
+            padding: 0 12px;
+            border: 1px solid var(--outline);
+            border-radius: 12px;
+            background: var(--surface);
+            color: var(--text);
+            font: inherit;
+        }
+
+        .halftone-control-field {
+            margin-bottom: 0;
+        }
+
+        .halftone-alignment-field {
+            border: 0;
+            margin: 0;
+            padding: 0;
+        }
+
+        .halftone-alignment-field legend {
+            padding: 0;
+        }
+
+        .halftone-alignment-options {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-auto-rows: 1fr;
+            align-items: stretch;
+            gap: 8px;
+            margin-top: 0px;
+        }
+
+        .halftone-alignment-option {
+            position: relative;
+            display: grid;
+            grid-template-columns: 20px minmax(0, 1fr);
+            align-items: center;
+            height: 100%;
+            gap: 10px;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--surface);
+            cursor: pointer;
+            transition: border-color .16s ease, background-color .16s ease;
+        }
+
+        .halftone-alignment-option:has(input:checked) {
+            border-color: var(--primary);
+            background: var(--soft-surface);
+        }
+
+        .halftone-alignment-option:focus-within {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+        .halftone-alignment-option input {
+            width: 18px;
+            height: 18px;
+            margin: 2px 0 0;
+            accent-color: var(--primary);
+        }
+
+        .halftone-alignment-copy {
+            display: grid;
+            gap: 3px;
+        }
+
+        .halftone-alignment-title {
+            color: var(--text);
+            font-size: 13px;
+            font-weight: 650;
+        }
+
+        .halftone-alignment-description {
+            color: var(--text-secondary);
+            font-size: 11px;
+            line-height: 1.45;
+        }
+
+        .halftone-channel-tabs {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 4px 0 8px;
+        }
+
+        .halftone-channel-card {
+            position: relative;
+            display: flex;
+            min-width: 0;
+            flex: 1 1 0;
+        }
+
+        .halftone-channel-tab {
+            position: relative;
+            display: flex;
+            min-width: 0;
+            min-height: 42px;
+            width: 100%;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 24px 8px 10px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--surface);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font: inherit;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .halftone-channel-tab[aria-selected="true"] {
+            border-color: var(--primary);
+            background: var(--soft-surface);
+            color: var(--soft-text);
+        }
+
+        .halftone-channel-tab:focus-visible,
+        .halftone-channel-tab-close:focus-visible,
+        .halftone-channel-add:focus-visible,
+        .halftone-color-preset:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+        .halftone-channel-card[hidden],
+        .halftone-channel-add[hidden] {
+            display: none;
+        }
+
+        .halftone-channel-swatch {
+            width: 30px;
+            height: 8px;
+            flex: 0 0 auto;
+            border: 1px solid rgba(0, 0, 0, .22);
+            border-radius: 99px;
+        }
+
+        .halftone-channel-name {
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .halftone-channel-tab-close {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            display: grid;
+            width: 22px;
+            height: 22px;
+            place-items: center;
+            padding: 0;
+            border: 0;
+            border-radius: 50%;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 17px;
+            line-height: 1;
+        }
+
+        .halftone-channel-tab-close:hover:not(:disabled) {
+            background: var(--surface-container);
+            color: var(--text);
+        }
+
+        .halftone-channel-tab-close:disabled {
+            cursor: not-allowed;
+            opacity: .35;
+        }
+
+        .halftone-channel-add {
+            display: inline-grid;
+            width: 42px;
+            min-height: 42px;
+            flex: 0 0 42px;
+            place-items: center;
+            align-self: center;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--surface);
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 22px;
+        }
+
+        .halftone-channel-editor {
+            display: grid;
+            gap: 8px;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: var(--surface-container);
+        }
+
+        .halftone-channel-editor[hidden] {
+            display: none;
+        }
+
+        .halftone-channel-editor-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 650;
+        }
+
+        .halftone-ink-picker {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+            grid-template-areas:
+                "current picker"
+                "label picker"
+                "hue picker"
+                "error picker";
+            grid-template-rows: auto auto 12px minmax(0, auto);
+            gap: 4px 8px;
+        }
+
+        .halftone-color-current {
+            grid-area: current;
+        }
+
+        .halftone-sv-picker {
+            grid-area: picker;
+            height: auto;
+            min-height: 120px;
+        }
+
+        .halftone-picker-label {
+            grid-area: label;
+        }
+
+        .halftone-picker-hue {
+            grid-area: hue;
+        }
+
+        .halftone-ink-picker .halftone-color-invalid {
+            grid-area: error;
+        }
+
+        .halftone-color-current {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            min-width: 0;
+            gap: 5px;
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--surface);
+        }
+
+        .halftone-color-preview {
+            width: 100%;
+            height: 8px;
+            border: 1px solid rgba(0, 0, 0, .22);
+            border-radius: 99px;
+            background: #00a8e8;
+        }
+
+        .halftone-color-current-copy {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            align-items: center;
+            min-width: 0;
+            gap: 8px;
+        }
+
+        .halftone-color-current-label {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .halftone-color-hex {
+            width: 100%;
+            min-width: 0;
+            height: 34px;
+            padding: 0 9px;
+            border: 1px solid var(--outline);
+            border-radius: 9px;
+            background: var(--surface);
+            color: var(--text);
+            font: 600 14px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace;
+            text-transform: uppercase;
+        }
+
+        .halftone-sv-picker {
+            position: relative;
+            height: 144px;
+            overflow: hidden;
+            border-radius: 14px;
+            background-color: hsl(195 100% 50%);
+            background-image:
+                linear-gradient(to top, #000, transparent),
+                linear-gradient(to right, #fff, transparent);
+            cursor: crosshair;
+            touch-action: none;
+            user-select: none;
+        }
+
+        .halftone-sv-picker:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 3px;
+        }
+
+        .halftone-sv-thumb {
+            position: absolute;
+            top: 0;
+            left: 100%;
+            width: 18px;
+            height: 18px;
+            border: 2px solid white;
+            border-radius: 50%;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .65);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+        }
+
+        .halftone-picker-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            color: var(--text-secondary);
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .halftone-picker-hue {
+            width: 100%;
+            height: 12px;
+            margin: 0;
+            appearance: none;
+            border: 0;
+            border-radius: 99px;
+            background: linear-gradient(
+                to right,
+                #f00 0%,
+                #ff0 16.67%,
+                #0f0 33.33%,
+                #0ff 50%,
+                #00f 66.67%,
+                #f0f 83.33%,
+                #f00 100%
+            );
+            cursor: pointer;
+        }
+
+        .halftone-picker-hue::-webkit-slider-thumb {
+            width: 20px;
+            height: 20px;
+            appearance: none;
+            border: 3px solid white;
+            border-radius: 50%;
+            background: transparent;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .45);
+        }
+
+        .halftone-picker-hue::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            border: 3px solid white;
+            border-radius: 50%;
+            background: transparent;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .45);
+        }
+
+        .halftone-color-invalid {
+            min-height: 16px;
+            color: var(--danger);
+            font-size: 12px;
+        }
+
+        .halftone-color-invalid:empty {
+            display: none;
+        }
+
+        .halftone-color-presets {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 6px;
+        }
+
+        .halftone-color-preset {
+            display: grid;
+            min-width: 0;
+            justify-items: center;
+            gap: 6px;
+            padding: 4px 2px;
+            border: 1px solid transparent;
+            border-radius: 14px;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font: inherit;
+            font-size: 11px;
+            transition: background-color .16s ease, border-color .16s ease;
+        }
+
+        .halftone-color-preset[aria-pressed="true"] {
+            border-color: var(--primary);
+            background: var(--surface);
+            color: var(--text);
+        }
+
+        .halftone-color-preset:hover {
+            background: var(--surface-container-high);
+        }
+
+        .halftone-color-preset-swatch {
+            width: 100%;
+            height: 8px;
+            border: 1px solid rgba(0, 0, 0, .24);
+            border-radius: 99px;
+        }
+
+        .halftone-color-preset-name {
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 480px) {
+            .halftone-channel-tabs {
+                gap: 6px;
+            }
+
+            .halftone-channel-tab {
+                min-height: 42px;
+                padding-right: 16px;
+                padding-left: 8px;
+            }
+
+            .halftone-color-presets {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+
+            .halftone-sv-picker {
+                height: 156px;
+            }
+        }
+
+        .halftone-global-settings .filter-help {
+            margin-bottom: 0;
+        }
+
+        .halftone-dialog-footer {
+            justify-content: flex-end;
+            border-top: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        .halftone-open-button {
+            width: 100%;
+            margin-bottom: 14px;
+        }
+
+        .halftone-open-button[hidden] {
+            display: none;
+        }
+
+        .filter-strength-field.hidden {
+            display: none;
+        }
+
         /* =========================
            Buttons
         ========================= */
@@ -687,6 +1375,11 @@
         .button:disabled {
             opacity: .45;
             cursor: not-allowed;
+        }
+
+        .button.is-unavailable {
+            opacity: .45;
+            cursor: pointer;
         }
 
         .button-primary {
@@ -797,6 +1490,14 @@
             margin-top: 7px;
         }
 
+        .progress-bar.is-error {
+            background: var(--danger);
+        }
+
+        .progress-text.is-error {
+            color: var(--danger);
+        }
+
         /* =========================
            Toast
         ========================= */
@@ -833,6 +1534,14 @@
 
             .settings {
                 order: -1;
+            }
+
+            .halftone-global-settings {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .halftone-alignment-field {
+                grid-column: 1 / -1;
             }
         }
 
@@ -936,6 +1645,134 @@
             .drop-zone {
                 min-height: 160px;
             }
+
+            .halftone-dialog {
+                width: 100%;
+                max-width: none;
+                max-height: 100vh;
+                max-height: 100dvh;
+                height: 100vh;
+                height: 100dvh;
+                border: none;
+                border-radius: 0;
+            }
+
+            .halftone-dialog-content {
+                height: 100%;
+                max-height: 100vh;
+                max-height: 100dvh;
+            }
+
+            .halftone-dialog-header,
+            .halftone-dialog-footer {
+                padding: 14px 16px;
+            }
+
+            .halftone-dialog-body {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                padding: 12px;
+            }
+
+            .halftone-workspace {
+                display: contents;
+            }
+
+            .halftone-preview-stage {
+                order: -1;
+                height: clamp(150px, 23vh, 210px);
+                flex: 0 0 auto;
+                border-radius: 16px;
+            }
+
+            .halftone-preview-canvas {
+                width: 100%;
+                height: 100%;
+            }
+
+            .halftone-global-settings {
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+                gap: 12px;
+                padding: 14px;
+                order: 0;
+            }
+
+            .halftone-alignment-options {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .halftone-alignment-option {
+                grid-template-columns: 1fr;
+                justify-items: center;
+                gap: 5px;
+                padding: 8px 5px;
+                text-align: center;
+            }
+
+            .halftone-alignment-option input {
+                margin: 0;
+            }
+
+            .halftone-alignment-title {
+                font-size: 11px;
+                line-height: 1.35;
+            }
+
+            .halftone-alignment-description {
+                font-size: 10px;
+                line-height: 1.35;
+            }
+
+            .halftone-workspace {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 12px;
+            }
+
+            .halftone-global-settings,
+            .halftone-channel-panel {
+                padding: 14px;
+            }
+
+            .halftone-channel-panel {
+                order: 1;
+            }
+
+            .halftone-channel-tabs {
+                gap: 6px;
+            }
+
+            .halftone-channel-tab {
+                gap: 5px;
+                padding: 7px 5px;
+                font-size: 12px;
+            }
+
+            .halftone-channel-add {
+                width: 38px;
+                min-height: 38px;
+                flex-basis: 38px;
+            }
+
+            .halftone-sv-picker {
+                height: 128px;
+            }
+
+            .halftone-ink-picker {
+                grid-template-columns: minmax(0, 1fr);
+                grid-template-areas:
+                    "current"
+                    "picker"
+                    "label"
+                    "hue"
+                    "error";
+                grid-template-rows: auto 128px auto 18px minmax(16px, auto);
+                gap: 8px;
+            }
+
+            .halftone-sv-picker {
+                min-height: 0;
+            }
         }
     </style>
 </head>
@@ -979,7 +1816,7 @@
 
             <div class="card-title">图片帧</div>
             <div class="card-description">
-                按 1 → 2 → 3 → … 的顺序排列图片，它们会依次成为 APNG 的动画帧。
+                按 1 → 2 → 3 → … 的顺序排列图片，<b>未添加滤镜预览时</b>，上传的第一图会作为预览图，后续成为 APNG 的动画帧。
             </div>
 
             <label class="drop-zone" id="dropZone">
@@ -1082,6 +1919,9 @@
                     动画帧使用相同的停留时间，预览图不计入动画时长。
                     例如 1000 = 1 秒。
                 </div>
+                <div class="filter-help">
+                    非 PNG 图片会自动优化到最多 256 色；PNG 图片不做额外颜色压缩。
+                </div>
             </div>
 
 
@@ -1180,7 +2020,7 @@
                     <div>
                         <div class="switch-text">添加滤镜预览帧</div>
                         <div class="card-description" style="margin:4px 0 0">
-                            将滤镜结果作为预览图显示，动画循环时从原图开始。
+                            添加上传图1的副本，作为预览图显示。动画循环时从上传图1开始。
                         </div>
                     </div>
 
@@ -1201,39 +2041,52 @@
                             id="blurPreviewImage"
                             width="116"
                             height="116"
-                            aria-label="滤镜首帧演示"
+                            aria-label="滤镜首帧演示·0ms"
                         ></canvas>
                         <div class="blur-preview-label">
                             滤镜首帧演示<br>
                             <span id="blurPreviewText">基于当前第一帧</span>
                         </div>
+                        <button
+                            class="blur-preview-download"
+                            id="downloadFilterPreview"
+                            type="button"
+                            aria-label="下载滤镜预览 PNG"
+                            title="下载滤镜预览 PNG"
+                            disabled
+                        >
+                            <span class="material-icons" aria-hidden="true">download</span>
+                        </button>
                     </div>
 
                     <label class="field-label" for="firstFrameFilter">
                         首帧滤镜
                     </label>
                     <select id="firstFrameFilter">
-                        <option value="blur">全局模糊</option>
-                        <option value="mosaic">圆球马赛克</option>
-                        <option value="glass">毛玻璃蒙版</option>
-                        <option value="pixelArt">像素画艺术</option>
                     </select>
+                    <div class="filter-help" id="filterDescription"></div>
 
-                    <label class="field-label" for="blurAmount">
-                        滤镜强度
-                    <span class="range-value" id="blurAmountValue">20 px</span>
-                    </label>
-                    <input
-                        type="range"
-                        id="blurAmount"
-                        min="1"
-                        max="100"
-                        value="20"
-                        step="1"
-                    >
-                    <div class="filter-help">
-                        控制滤镜效果的明显程度。
+                    <div class="filter-strength-field" id="filterStrengthField">
+                        <label class="field-label" for="blurAmount">
+                            滤镜强度
+                            <span class="range-value" id="blurAmountValue">3% · -- px</span>
+                        </label>
+                        <input
+                            type="range"
+                            id="blurAmount"
+                            min="0.1"
+                            max="20"
+                            value="3"
+                            step="0.1"
+                        >
+                        <div class="filter-help">
+                            按输出画布短边的比例调整强度；预览会按缩略画布尺寸自动换算像素。
+                        </div>
                     </div>
+                    <button class="button button-tonal halftone-open-button" id="openHalftoneDialog" type="button" hidden>
+                        <span class="material-icons">tune</span>
+                        调整半色调
+                    </button>
 
                     <label class="field-label" for="colorLevels">
                         颜色量化
@@ -1253,14 +2106,14 @@
 
                     <label class="field-label" for="filterQuality">
                         色带质量
-                        <span class="range-value" id="filterQualityValue">20%</span>
+                        <span class="range-value" id="filterQualityValue">60%</span>
                     </label>
                     <input
                         type="range"
                         id="filterQuality"
                         min="10"
                         max="100"
-                        value="20"
+                        value="60"
                         step="5"
                     >
                     <div class="filter-help">
@@ -1269,14 +2122,14 @@
 
                     <label class="field-label" for="downsample">
                         降采样倍率
-                        <span class="range-value" id="downsampleValue">5x</span>
+                        <span class="range-value" id="downsampleValue">1x</span>
                     </label>
                     <input
                         type="range"
                         id="downsample"
                         min="1"
                         max="64"
-                        value="5"
+                        value="1"
                         step="1"
                     >
                     <div class="filter-help">
@@ -1404,6 +2257,27 @@
                 <input id="extractFileInput" type="file" accept="image/png,.png,.apng" />
             </label>
 
+            <div
+                class="progress-wrap"
+                id="extractProgressWrap"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+            >
+                <div
+                    class="progress-track"
+                    role="progressbar"
+                    aria-label="图片拆帧进度"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    aria-valuenow="0"
+                    id="extractProgressTrack"
+                >
+                    <div class="progress-bar" id="extractProgressBar"></div>
+                </div>
+                <div class="progress-text" id="extractProgressText"></div>
+            </div>
+
             <div class="extractor-toolbar">
                 <div class="frame-count" id="extractCount">还没有加载图片</div>
                 <button class="button button-primary" id="extractAllButton" disabled>
@@ -1434,6 +2308,167 @@
     </div>
 </div>
 
+<dialog class="halftone-dialog" id="halftoneDialog" aria-labelledby="halftoneDialogTitle">
+    <div class="halftone-dialog-content">
+        <header class="halftone-dialog-header">
+            <div>
+                <h2 class="halftone-dialog-title" id="halftoneDialogTitle">半色调网点</h2>
+                <div class="halftone-dialog-subtitle">调整网点频率和角度，预览会实时更新。</div>
+            </div>
+            <button class="button button-text" id="closeHalftoneDialog" type="button" aria-label="关闭半色调设置">
+                <span class="material-icons">close</span>
+            </button>
+        </header>
+        <div class="halftone-dialog-body">
+            <section class="halftone-global-settings" aria-label="全局设置">
+                <div class="halftone-control-field">
+                    <label class="halftone-control-heading" for="halftoneFrequency">
+                        <span>网点间距</span>
+                        <span class="halftone-control-value" id="halftoneFrequencyValue"></span>
+                    </label>
+                    <input type="range" id="halftoneFrequency" min="0.1" max="20" value="3" step="0.1">
+                    <div class="filter-help">比例越高，网点越稀疏。</div>
+                </div>
+
+                <div class="halftone-control-field halftone-angle-field">
+                    <label class="halftone-control-heading" for="halftoneBaseAngle">
+                        <span>基础角度</span>
+                        <span class="halftone-control-value">全局</span>
+                    </label>
+                    <input type="number" id="halftoneBaseAngle" min="0" max="180" value="45" step="1" inputmode="numeric">
+                    <div class="filter-help">印刷通道共用角度。</div>
+                    <div class="halftone-color-invalid" id="halftoneBaseAngleError" role="status" aria-live="polite"></div>
+                </div>
+
+                <fieldset class="halftone-control-field halftone-alignment-field" aria-label="全局网点对齐模式">
+                    <legend class="halftone-control-heading">网点对齐模式</legend>
+                    <div class="halftone-alignment-options" role="radiogroup" aria-label="网点对齐预设">
+                        <label class="halftone-alignment-option">
+                            <input type="radio" name="halftoneAlignmentMode" value="Dot on Dot">
+                            <span class="halftone-alignment-copy">
+                                <span class="halftone-alignment-title">点对点叠印</span>
+                                <span class="halftone-alignment-description">多通道油墨叠印。</span>
+                            </span>
+                        </label>
+                        <label class="halftone-alignment-option">
+                            <input type="radio" name="halftoneAlignmentMode" value="Offset">
+                            <span class="halftone-alignment-copy">
+                                <span class="halftone-alignment-title">错位对齐</span>
+                                <span class="halftone-alignment-description">多通道网点错开。</span>
+                            </span>
+                        </label>
+                        <label class="halftone-alignment-option">
+                            <input type="radio" name="halftoneAlignmentMode" value="Rosette" checked>
+                            <span class="halftone-alignment-copy">
+                                <span class="halftone-alignment-title">玫瑰斑网点</span>
+                                <span class="halftone-alignment-description">多通道，传统彩刷的玫瑰斑网点。</span>
+                            </span>
+                        </label>
+                    </div>
+                </fieldset>
+
+                <div class="halftone-control-field">
+                    <label class="halftone-control-heading" for="halftonePaper">
+                        <span>印刷纸张</span>
+                    </label>
+                    <select id="halftonePaper">
+                        <option value="warm">暖色纸</option>
+                        <option value="white">白纸</option>
+                        <option value="uncoated" selected>普通印刷纸</option>
+                        <option value="coated">铜版纸</option>
+                    </select>
+                    <div class="filter-help">纸张会影响网点底色和油墨扩散质感。</div>
+                </div>
+            </section>
+
+            <div class="halftone-workspace">
+                <div class="halftone-preview-stage">
+                    <canvas
+                        class="halftone-preview-canvas"
+                        id="halftonePreviewCanvas"
+                        aria-label="半色调实时预览"
+                    ></canvas>
+                </div>
+
+                <section class="halftone-channel-panel" aria-label="通道设置">
+                    <div class="halftone-control-heading">
+                        <span>印刷通道</span>
+                        <span class="halftone-control-value" id="halftoneChannelCountLabel">0 / 3</span>
+                    </div>
+                    <div class="halftone-channel-tabs" id="halftoneChannelTabs" role="tablist" aria-label="半色调印刷通道">
+                        <button class="halftone-channel-add" id="addHalftoneChannel" type="button" aria-label="添加印刷通道" title="添加通道">+</button>
+                    </div>
+                    <div class="halftone-channel-empty" id="halftoneChannelEmpty">
+                        <span class="material-icons" aria-hidden="true">palette</span>
+                        <span class="halftone-channel-empty-title">当前显示原图色彩</span>
+                        <span>尚未添加油墨通道。点击「+」开始半色调分色。</span>
+                    </div>
+
+                <section class="halftone-channel-editor" id="halftoneChannelEditor" role="tabpanel" aria-label="当前印刷通道设置" hidden>
+                    <div class="halftone-ink-picker">
+                        <div class="halftone-color-current">
+                            <span class="halftone-color-preview" id="halftoneColorPreview" aria-hidden="true"></span>
+                            <div class="halftone-color-current-copy">
+                                <label class="halftone-color-current-label" for="halftoneColorHex">HEX:</label>
+                                <input class="halftone-color-hex" id="halftoneColorHex" type="text" value="#00A8E8" maxlength="7" spellcheck="false" autocomplete="off" aria-label="HEX 颜色值" aria-describedby="halftoneColorError">
+                            </div>
+                        </div>
+                        <div
+                            class="halftone-sv-picker"
+                            id="halftoneSvPicker"
+                            role="group"
+                            tabindex="0"
+                            aria-label="颜色选择：使用方向键调整饱和度和明度"
+                        >
+                            <span class="halftone-sv-thumb" id="halftoneSvThumb" aria-hidden="true"></span>
+                        </div>
+                        <label class="halftone-picker-label" for="halftoneHue">
+                            <span>色相</span>
+                            <span id="halftoneHueValue">195°</span>
+                        </label>
+                        <input class="halftone-picker-hue" id="halftoneHue" type="range" min="0" max="360" value="195" step="1" aria-label="色相">
+                        <div class="halftone-color-invalid" id="halftoneColorError" role="status" aria-live="polite"></div>
+                    </div>
+                    <div class="halftone-color-presets" id="halftoneColorPresets" role="group" aria-label="半色调印刷常用颜色">
+                        <button class="halftone-color-preset" type="button" data-color="#00AEEF" aria-label="青色" title="青色">
+                            <span class="halftone-color-preset-swatch" style="background-color: #00AEEF"></span>
+                            <span class="halftone-color-preset-name">青</span>
+                        </button>
+                        <button class="halftone-color-preset" type="button" data-color="#EC008C" aria-label="品红色" title="品红色">
+                            <span class="halftone-color-preset-swatch" style="background-color: #EC008C"></span>
+                            <span class="halftone-color-preset-name">品红</span>
+                        </button>
+                        <button class="halftone-color-preset" type="button" data-color="#FFF200" aria-label="黄色" title="黄色">
+                            <span class="halftone-color-preset-swatch" style="background-color: #FFF200"></span>
+                            <span class="halftone-color-preset-name">黄</span>
+                        </button>
+                        <button class="halftone-color-preset" type="button" data-color="#231F20" aria-label="黑色" title="黑色">
+                            <span class="halftone-color-preset-swatch" style="background-color: #231F20"></span>
+                            <span class="halftone-color-preset-name">黑</span>
+                        </button>
+                        <button class="halftone-color-preset" type="button" data-color="#FF4500" aria-label="橘红色" title="橘红色">
+                            <span class="halftone-color-preset-swatch" style="background-color: #FF4500"></span>
+                            <span class="halftone-color-preset-name">橘红</span>
+                        </button>
+                        <button class="halftone-color-preset" type="button" data-color="#2E3192" aria-label="蓝色" title="蓝色">
+                            <span class="halftone-color-preset-swatch" style="background-color: #2E3192"></span>
+                            <span class="halftone-color-preset-name">蓝</span>
+                        </button>
+                        <button class="halftone-color-preset" type="button" data-color="#00A651" aria-label="绿色" title="绿色">
+                            <span class="halftone-color-preset-swatch" style="background-color: #00A651"></span>
+                            <span class="halftone-color-preset-name">绿</span>
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </div>
+        <footer class="halftone-dialog-footer">
+            <button class="button button-text" id="resetHalftoneSettings" type="button">重置</button>
+            <button class="button button-primary" id="doneHalftoneDialog" type="button">完成</button>
+        </footer>
+    </div>
+</dialog>
+
 
 <!--
     UPNG.js
@@ -1442,9 +2477,14 @@
 <script src="https://unpkg.com/@upng/upng-js/dist/UPNG.umd.js"></script>
 
 <script type="module">
-    import { applyFrameFilter } from "./src/filters.js";
+    import {
+        apply_channel_alignment,
+        applyFrameFilter,
+        getFrameFilterOptions
+    } from "./src/filters.js";
     import {
         combineDefaultImageWithAPNG,
+        encodeDefaultImageWithPalette,
         patchAPNGDelays
     } from "./src/apng.js";
 
@@ -1500,8 +2540,27 @@
     const blurAmountValue =
         document.getElementById("blurAmountValue");
 
+    const filterStrengthField =
+        document.getElementById("filterStrengthField");
+
+    const openHalftoneDialogButton =
+        document.getElementById("openHalftoneDialog");
+
     const firstFrameFilter =
         document.getElementById("firstFrameFilter");
+
+    const filterDescription =
+        document.getElementById("filterDescription");
+    const frameFilterOptions = getFrameFilterOptions();
+    const filterDescriptions = new Map(
+        frameFilterOptions.map(filter => [filter.value, filter.description])
+    );
+    frameFilterOptions.forEach(({ value, label }) => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = label;
+        firstFrameFilter.appendChild(option);
+    });
 
     const blurPreview =
         document.getElementById("blurPreview");
@@ -1511,6 +2570,8 @@
 
     const blurPreviewText =
         document.getElementById("blurPreviewText");
+    const downloadFilterPreviewButton =
+        document.getElementById("downloadFilterPreview");
 
     const previewModal =
         document.getElementById("previewModal");
@@ -1520,6 +2581,55 @@
 
     const previewModalClose =
         document.getElementById("previewModalClose");
+
+    const halftoneDialog =
+        document.getElementById("halftoneDialog");
+    const closeHalftoneDialogButton =
+        document.getElementById("closeHalftoneDialog");
+    const doneHalftoneDialogButton =
+        document.getElementById("doneHalftoneDialog");
+    const resetHalftoneSettingsButton =
+        document.getElementById("resetHalftoneSettings");
+    const halftonePreviewCanvas =
+        document.getElementById("halftonePreviewCanvas");
+    const halftoneFrequency =
+        document.getElementById("halftoneFrequency");
+    const halftoneFrequencyValue =
+        document.getElementById("halftoneFrequencyValue");
+    const halftonePaper =
+        document.getElementById("halftonePaper");
+    const halftoneChannelTabs =
+        document.getElementById("halftoneChannelTabs");
+    const halftoneChannelEmpty =
+        document.getElementById("halftoneChannelEmpty");
+    const halftoneChannelEditor =
+        document.getElementById("halftoneChannelEditor");
+    const addHalftoneChannelButton =
+        document.getElementById("addHalftoneChannel");
+    const halftoneChannelCountLabel =
+        document.getElementById("halftoneChannelCountLabel");
+    const halftoneColorHex =
+        document.getElementById("halftoneColorHex");
+    const halftoneColorPreview =
+        document.getElementById("halftoneColorPreview");
+    const halftoneSvPicker =
+        document.getElementById("halftoneSvPicker");
+    const halftoneSvThumb =
+        document.getElementById("halftoneSvThumb");
+    const halftoneHue =
+        document.getElementById("halftoneHue");
+    const halftoneHueValue =
+        document.getElementById("halftoneHueValue");
+    const halftoneColorError =
+        document.getElementById("halftoneColorError");
+    const halftoneColorPresets =
+        document.getElementById("halftoneColorPresets");
+    const halftoneBaseAngle =
+        document.getElementById("halftoneBaseAngle");
+    const halftoneBaseAngleError =
+        document.getElementById("halftoneBaseAngleError");
+    const halftoneAlignmentModes =
+        document.querySelectorAll('input[name="halftoneAlignmentMode"]');
 
     const colorLevels =
         document.getElementById("colorLevels");
@@ -1599,6 +2709,18 @@
     const extractedFrames =
         document.getElementById("extractedFrames");
 
+    const extractProgressWrap =
+        document.getElementById("extractProgressWrap");
+
+    const extractProgressTrack =
+        document.getElementById("extractProgressTrack");
+
+    const extractProgressBar =
+        document.getElementById("extractProgressBar");
+
+    const extractProgressText =
+        document.getElementById("extractProgressText");
+
 
     /*
      * ==========================================
@@ -1608,11 +2730,28 @@
 
     let frames = [];
 
+    let halftoneChannels = [];
+    let activeHalftoneChannelIndex = 0;
+    let halftonePickerHue = 195;
+    let halftonePickerSaturation = 1;
+    let halftonePickerValue = 0.91;
+    const halftoneInkPresets = [
+        { name: "青", color: "#00AEEF" },
+        { name: "品红", color: "#EC008C" },
+        { name: "黄", color: "#FFF200" },
+        { name: "黑", color: "#231F20" },
+        { name: "橘红", color: "#FF4500" },
+        { name: "蓝", color: "#2E3192" },
+        { name: "绿", color: "#00A651" }
+    ];
+
     let generatedBlob = null;
 
     let dragIndex = null;
 
     let extractedPngs = [];
+    let isExtractingFrames = false;
+    let extractProgressTimeout = 0;
 
     const systemThemeQuery =
         window.matchMedia("(prefers-color-scheme: dark)");
@@ -1727,30 +2866,92 @@
         });
     }
 
+    function updateExtractProgress(progress, message, isError = false) {
+        const percentage = Math.max(0, Math.min(100, progress));
+        extractProgressBar.style.width = `${percentage}%`;
+        extractProgressBar.classList.toggle("is-error", isError);
+        extractProgressTrack.setAttribute(
+            "aria-valuenow",
+            String(Math.round(percentage))
+        );
+        extractProgressText.textContent = message;
+        extractProgressText.classList.toggle("is-error", isError);
+    }
+
+    function yieldToBrowser() {
+        return new Promise(resolve => setTimeout(resolve, 0));
+    }
+
     async function extractFrames(file) {
-        if (!file) {
+        if (!file || isExtractingFrames) {
             return;
         }
 
+        isExtractingFrames = true;
+        clearTimeout(extractProgressTimeout);
+        extractedPngs = [];
+        renderExtractedFrames();
+        extractAllButton.disabled = true;
+        extractFileInput.disabled = true;
+        extractDropZone.setAttribute("aria-busy", "true");
+        extractProgressWrap.classList.add("show");
+        updateExtractProgress(0, "正在读取文件…");
+
         try {
-            const decoded = UPNG.decode(await file.arrayBuffer());
+            const fileBuffer = await file.arrayBuffer();
+            updateExtractProgress(10, "正在解析图片…");
+            await yieldToBrowser();
+
+            const decoded = UPNG.decode(fileBuffer);
+            updateExtractProgress(30, "正在展开动画帧…");
+            await yieldToBrowser();
+
             const rgbaFrames = UPNG.toRGBA8(decoded);
-            extractedPngs = rgbaFrames.map(rgba =>
-                new Blob(
-                    [UPNG.encode(
-                        [rgba],
-                        decoded.width,
-                        decoded.height,
-                        0
-                    )],
-                    { type: "image/png" }
-                )
-            );
+            if (rgbaFrames.length === 0) {
+                throw new Error("图片中没有可导出的帧");
+            }
+            extractedPngs = [];
+
+            for (let index = 0; index < rgbaFrames.length; index++) {
+                updateExtractProgress(
+                    40 + (index / rgbaFrames.length) * 55,
+                    `正在导出第 ${index + 1} / ${rgbaFrames.length} 帧…`
+                );
+                await yieldToBrowser();
+
+                const pngBuffer = UPNG.encode(
+                    [rgbaFrames[index]],
+                    decoded.width,
+                    decoded.height,
+                    0
+                );
+                extractedPngs.push(
+                    new Blob([pngBuffer], { type: "image/png" })
+                );
+                updateExtractProgress(
+                    40 + ((index + 1) / rgbaFrames.length) * 55,
+                    `已导出 ${index + 1} / ${rgbaFrames.length} 帧`
+                );
+            }
+
+            updateExtractProgress(98, "正在生成帧预览…");
             renderExtractedFrames();
+            updateExtractProgress(100, `拆帧完成，共 ${extractedPngs.length} 帧`);
             showToast(`已拆出 ${extractedPngs.length} 帧`);
         } catch (error) {
             console.error(error);
-            showToast("拆帧失败：" + (error.message || "文件格式无效"));
+            extractedPngs = [];
+            renderExtractedFrames();
+            const message = `拆帧失败：${getErrorMessage(error)}`;
+            updateExtractProgress(100, message, true);
+            showToast(message);
+        } finally {
+            isExtractingFrames = false;
+            extractFileInput.disabled = false;
+            extractDropZone.removeAttribute("aria-busy");
+            extractProgressTimeout = setTimeout(() => {
+                extractProgressWrap.classList.remove("show");
+            }, 2500);
         }
     }
 
@@ -1804,7 +3005,120 @@
 
     }
 
+    function getErrorMessage(error) {
+        return error instanceof Error
+            ? error.message
+            : String(error);
+    }
+
+    function require2dContext(canvas, options) {
+        const context = canvas.getContext("2d", options);
+
+        if (!context) {
+            throw new Error("浏览器无法创建 Canvas 2D 上下文");
+        }
+
+        return context;
+    }
+
+    function getFilterAmount(width, height, filterPercent) {
+        if (
+            !width ||
+            !height ||
+            !Number.isFinite(filterPercent) ||
+            filterPercent <= 0
+        ) {
+            return 0;
+        }
+
+        return Math.max(
+            0.1,
+            Math.round(
+                Math.min(width, height) * filterPercent / 100 * 10
+            ) / 10
+        );
+    }
+
+    function formatFilterAmount(amount) {
+        return Number.isInteger(amount)
+            ? String(amount)
+            : amount.toFixed(1);
+    }
+
+    function getFrameDelay() {
+        return Math.max(
+            1,
+            Math.min(
+                3600000,
+                Math.round(Number(frameDelayInput.value) || 1000)
+            )
+        );
+    }
+
+    function isPngSourceFrame(frame) {
+        return (
+            frame.file.type.toLowerCase() === "image/png" ||
+            /\.png$/i.test(frame.file.name)
+        );
+    }
+
+    function prepareFrameForEncoding(frame, pixelBuffer) {
+        return isPngSourceFrame(frame)
+            ? pixelBuffer
+            : UPNG.quantize(pixelBuffer, 256).abuf;
+    }
+
+    function updateBlurAmountValue() {
+        const { width, height } = getOutputSize();
+        const amount = getFilterAmount(
+            width,
+            height,
+            Number(blurAmount.value)
+        );
+
+        blurAmountValue.textContent =
+            `${blurAmount.value}% · ${amount ? `${formatFilterAmount(amount)} px` : "-- px"}`;
+    }
+
     function updateBlurPreview() {
+        if (!frames.length && blurFirstFrame.checked) {
+            blurFirstFrame.checked = false;
+        }
+        blurSettings.style.display =
+            blurFirstFrame.checked
+                ? "block"
+                : "none";
+
+        updateBlurAmountValue();
+        const needsMoreFrames =
+            frames.length === 1 && !blurFirstFrame.checked;
+        generateButton.classList.toggle(
+            "is-unavailable",
+            needsMoreFrames
+        );
+        generateButton.setAttribute(
+            "aria-disabled",
+            String(needsMoreFrames)
+        );
+        generateButton.title = needsMoreFrames
+            ? "开启添加滤镜预览，或添加至少两张图片"
+            : "";
+
+        const isHalftone = firstFrameFilter.value === "halftone";
+        filterStrengthField.classList.toggle("hidden", isHalftone);
+        openHalftoneDialogButton.hidden = !isHalftone;
+        openHalftoneDialogButton.disabled = frames.length === 0;
+        downloadFilterPreviewButton.disabled =
+            !frames[0] || !blurFirstFrame.checked;
+        halftoneFrequency.value = blurAmount.value;
+        updateHalftoneFrequencyValue();
+        updateHalftoneChannelControls();
+
+        const description = filterDescriptions.get(firstFrameFilter.value);
+        if (description === undefined) {
+            throw new Error(`缺少滤镜说明：${firstFrameFilter.value}`);
+        }
+        filterDescription.textContent = description;
 
         const firstFrame = frames[0];
         const shouldShow =
@@ -1814,31 +3128,433 @@
         blurPreview.classList.toggle("show", Boolean(shouldShow));
 
         if (!shouldShow) {
-            blurPreviewImage
-                .getContext("2d")
-                .clearRect(
-                    0,
-                    0,
-                    blurPreviewImage.width,
-                    blurPreviewImage.height
-                );
+            require2dContext(blurPreviewImage, {
+                willReadFrequently: true
+            }).clearRect(
+                0,
+                0,
+                blurPreviewImage.width,
+                blurPreviewImage.height
+            );
             return;
         }
 
-        drawFrame(
-            blurPreviewImage.getContext("2d"),
-            firstFrame,
-            116,
-            116,
-            firstFrameFilter.value,
-            Number(blurAmount.value),
-            Number(colorLevels.value),
-            Number(downsample.value),
-            Number(filterQuality.value)
-        );
-        blurPreviewText.textContent =
-            `${firstFrame.name} · ${firstFrameFilter.options[firstFrameFilter.selectedIndex].text} · ${blurAmount.value}`;
+        try {
+            drawFrame(
+                require2dContext(blurPreviewImage, {
+                    willReadFrequently: true
+                }),
+                firstFrame,
+                116,
+                116,
+                {
+                    filterType: firstFrameFilter.value,
+                    filterPercent: Number(blurAmount.value),
+                    filterOptions: getFirstFrameFilterOptions(),
+                    colorLevelCount: Number(colorLevels.value),
+                    downsampleFactor: Number(downsample.value),
+                    filterQualityPercent: Number(filterQuality.value)
+                }
+            );
+            blurPreviewText.textContent =
+                `${firstFrame.name} · ${firstFrameFilter.options[firstFrameFilter.selectedIndex].text} · ${blurAmount.value}%（缩略图 ${formatFilterAmount(getFilterAmount(116, 116, Number(blurAmount.value)))} px）`;
+        } catch (error) {
+            console.error("滤镜缩略预览失败", error);
+            blurPreviewImage
+                .getContext("2d")
+                ?.clearRect(0, 0, blurPreviewImage.width, blurPreviewImage.height);
+            blurPreviewText.textContent =
+                `预览失败：${getErrorMessage(error)}`;
+        }
 
+        if (halftoneDialog.open) {
+            renderHalftonePreview();
+        }
+
+    }
+
+    function updateHalftoneFrequencyValue() {
+        const { width, height } = getOutputSize();
+        const amount = getFilterAmount(
+            width,
+            height,
+            Number(halftoneFrequency.value)
+        );
+        halftoneFrequencyValue.textContent =
+            `${halftoneFrequency.value}% · ${amount ? `${formatFilterAmount(amount)} px` : "-- px"}`;
+    }
+
+    function getHalftoneOptions() {
+        const baseAngle = halftoneBaseAngle.valueAsNumber;
+        if (
+            !Number.isFinite(baseAngle) ||
+            baseAngle < 0 ||
+            baseAngle > 180
+        ) {
+            throw new RangeError("基础网点角度必须在 0° 到 180° 之间");
+        }
+
+        const mode = document.querySelector(
+            'input[name="halftoneAlignmentMode"]:checked'
+        )?.value;
+        const { width, height } = getOutputSize();
+        const cellSize = Math.max(
+            2,
+            Math.round(
+                getFilterAmount(
+                    width,
+                    height,
+                    Number(halftoneFrequency.value)
+                )
+            )
+        );
+        const freq = 1 / cellSize;
+
+        return {
+            baseAngle,
+            paper: halftonePaper.value,
+            channels: halftoneChannels.length
+                ? apply_channel_alignment(
+                    halftoneChannels,
+                    baseAngle,
+                    freq,
+                    mode
+                )
+                : []
+        };
+    }
+
+    function getFirstFrameFilterOptions(filterType = firstFrameFilter.value) {
+        return filterType === "halftone"
+            ? getHalftoneOptions()
+            : {};
+    }
+
+    function getHalftoneInkName(color) {
+        const normalizedColor = color.toUpperCase();
+        const preset = halftoneInkPresets.find(
+            item => item.color === normalizedColor
+        );
+        if (preset) {
+            return preset.name;
+        }
+
+        const match = /^#([0-9A-F]{6})$/i.exec(color);
+        if (!match) {
+            return "自定义";
+        }
+
+        const value = Number.parseInt(match[1], 16);
+        const red = (value >> 16) & 255;
+        const green = (value >> 8) & 255;
+        const blue = value & 255;
+        const max = Math.max(red, green, blue) / 255;
+        const min = Math.min(red, green, blue) / 255;
+        const delta = max - min;
+        const saturation = max === 0 ? 0 : delta / max;
+
+        if (saturation < 0.16) {
+            if (max < 0.2) {
+                return "黑";
+            }
+            if (max > 0.92) {
+                return "白";
+            }
+            return "灰";
+        }
+
+        let hue;
+        const r = red / 255;
+        const g = green / 255;
+        const b = blue / 255;
+        if (max === r) {
+            hue = ((g - b) / delta) % 6;
+        } else if (max === g) {
+            hue = (b - r) / delta + 2;
+        } else {
+            hue = (r - g) / delta + 4;
+        }
+        hue = (hue * 60 + 360) % 360;
+
+        if (hue < 15 || hue >= 345) return "红";
+        if (hue < 28) return "橘红";
+        if (hue < 45) return "橙";
+        if (hue < 70) return "黄";
+        if (hue < 155) return "绿";
+        if (hue < 205) return "青";
+        if (hue < 255) return "蓝";
+        if (hue < 290) return "紫";
+        return "品红";
+    }
+
+    function updateHalftoneColorPresetSelection(color) {
+        const normalizedColor = color.toUpperCase();
+        halftoneColorPresets
+            .querySelectorAll(".halftone-color-preset")
+            .forEach(button => {
+                button.setAttribute(
+                    "aria-pressed",
+                    String(button.dataset.color === normalizedColor)
+                );
+            });
+    }
+
+    function hexToHsv(color) {
+        const match = /^#?([0-9A-F]{6})$/i.exec(color);
+        if (!match) {
+            return null;
+        }
+
+        const value = Number.parseInt(match[1], 16);
+        const red = ((value >> 16) & 255) / 255;
+        const green = ((value >> 8) & 255) / 255;
+        const blue = (value & 255) / 255;
+        const max = Math.max(red, green, blue);
+        const min = Math.min(red, green, blue);
+        const delta = max - min;
+        let hue = 0;
+
+        if (delta > 0) {
+            if (max === red) {
+                hue = ((green - blue) / delta) % 6;
+            } else if (max === green) {
+                hue = (blue - red) / delta + 2;
+            } else {
+                hue = (red - green) / delta + 4;
+            }
+            hue = (hue * 60 + 360) % 360;
+        }
+
+        return {
+            hue,
+            saturation: max === 0 ? 0 : delta / max,
+            value: max
+        };
+    }
+
+    function hsvToHex(hue, saturation, value) {
+        const chroma = value * saturation;
+        const hueSection = hue / 60;
+        const secondary = chroma * (1 - Math.abs((hueSection % 2) - 1));
+        let red = 0;
+        let green = 0;
+        let blue = 0;
+
+        if (hueSection < 1) {
+            [red, green] = [chroma, secondary];
+        } else if (hueSection < 2) {
+            [red, green] = [secondary, chroma];
+        } else if (hueSection < 3) {
+            [green, blue] = [chroma, secondary];
+        } else if (hueSection < 4) {
+            [green, blue] = [secondary, chroma];
+        } else if (hueSection < 5) {
+            [red, blue] = [secondary, chroma];
+        } else {
+            [red, blue] = [chroma, secondary];
+        }
+
+        const offset = value - chroma;
+        const toHex = component =>
+            Math.round((component + offset) * 255)
+                .toString(16)
+                .padStart(2, "0");
+        return `#${toHex(red)}${toHex(green)}${toHex(blue)}`;
+    }
+
+    function updateHalftonePickerControls(color) {
+        const hsv = hexToHsv(color);
+        if (!hsv) {
+            throw new Error("无法解析油墨颜色");
+        }
+
+        halftonePickerHue = hsv.hue;
+        halftonePickerSaturation = hsv.saturation;
+        halftonePickerValue = hsv.value;
+        halftoneHue.value = String(Math.round(hsv.hue));
+        halftoneHueValue.textContent = `${Math.round(hsv.hue)}°`;
+        halftoneSvPicker.style.backgroundColor =
+            `hsl(${hsv.hue} 100% 50%)`;
+        halftoneSvThumb.style.left = `${hsv.saturation * 100}%`;
+        halftoneSvThumb.style.top = `${(1 - hsv.value) * 100}%`;
+        halftoneColorPreview.style.backgroundColor = color;
+        halftoneColorHex.value = color.toUpperCase();
+        halftoneColorHex.removeAttribute("aria-invalid");
+        halftoneColorError.textContent = "";
+        updateHalftoneColorPresetSelection(color);
+    }
+
+    function setActiveHalftoneInkColor(color) {
+        const activeChannel =
+            halftoneChannels[activeHalftoneChannelIndex];
+        if (!activeChannel) {
+            throw new Error("当前半色调通道不存在");
+        }
+
+        activeChannel.color = color.toLowerCase();
+        activeChannel.name = getHalftoneInkName(color);
+        const tab = document.getElementById(
+            `halftoneChannelTab${activeHalftoneChannelIndex}`
+        );
+        tab.querySelector(".halftone-channel-swatch").style.backgroundColor =
+            activeChannel.color;
+        tab.querySelector(".halftone-channel-name").textContent =
+            activeChannel.name;
+        tab.parentElement
+            .querySelector(".halftone-channel-tab-close")
+            .setAttribute("aria-label", `删除${activeChannel.name}通道`);
+        updateHalftonePickerControls(activeChannel.color);
+        updateBlurPreview();
+    }
+
+    function renderHalftoneChannelTabs() {
+        halftoneChannelTabs
+            .querySelectorAll(".halftone-channel-card")
+            .forEach(card => card.remove());
+
+        halftoneChannels.forEach((channel, index) => {
+            channel.name = getHalftoneInkName(channel.color);
+            const card = document.createElement("div");
+            card.className = "halftone-channel-card";
+
+            const tab = document.createElement("button");
+            tab.className = "halftone-channel-tab";
+            tab.type = "button";
+            tab.id = `halftoneChannelTab${index}`;
+            tab.setAttribute("role", "tab");
+            tab.setAttribute(
+                "aria-selected",
+                String(index === activeHalftoneChannelIndex)
+            );
+            tab.setAttribute("aria-controls", "halftoneChannelEditor");
+            tab.tabIndex = index === activeHalftoneChannelIndex ? 0 : -1;
+            tab.dataset.channelIndex = String(index);
+
+            const swatch = document.createElement("span");
+            swatch.className = "halftone-channel-swatch";
+            swatch.style.backgroundColor = channel.color;
+            swatch.setAttribute("aria-hidden", "true");
+
+            const label = document.createElement("span");
+            label.className = "halftone-channel-name";
+            label.textContent = channel.name;
+            tab.append(swatch, label);
+
+            const removeButton = document.createElement("button");
+            removeButton.className = "halftone-channel-tab-close";
+            removeButton.type = "button";
+            removeButton.dataset.channelIndex = String(index);
+            removeButton.setAttribute("aria-label", `删除${channel.name}通道`);
+            removeButton.title = "删除通道";
+            removeButton.textContent = "×";
+
+            card.append(tab, removeButton);
+            halftoneChannelTabs.insertBefore(card, addHalftoneChannelButton);
+        });
+
+        halftoneChannelCountLabel.textContent =
+            `${halftoneChannels.length} / 3`;
+        addHalftoneChannelButton.hidden = halftoneChannels.length >= 3;
+
+        updateHalftoneChannelTabSelection();
+    }
+
+    function updateHalftoneChannelTabSelection() {
+        const tabs = halftoneChannelTabs.querySelectorAll(
+            ".halftone-channel-tab"
+        );
+        tabs.forEach((tab, index) => {
+            const isActive = index === activeHalftoneChannelIndex;
+            tab.setAttribute("aria-selected", String(isActive));
+            tab.tabIndex = isActive ? 0 : -1;
+        });
+
+        const activeTab = document.getElementById(
+            `halftoneChannelTab${activeHalftoneChannelIndex}`
+        );
+        halftoneChannelEmpty.hidden = Boolean(activeTab);
+        halftoneChannelEditor.hidden = !activeTab;
+        if (activeTab) {
+            halftoneChannelEditor.setAttribute(
+                "aria-labelledby",
+                activeTab.id
+            );
+        } else {
+            halftoneChannelEditor.removeAttribute("aria-labelledby");
+        }
+    }
+
+    function updateHalftoneChannelControls() {
+        const activeChannel =
+            halftoneChannels[activeHalftoneChannelIndex];
+        if (!activeChannel) {
+            halftoneChannelEmpty.hidden = false;
+            halftoneChannelEditor.hidden = true;
+            return;
+        }
+
+        halftoneChannelEmpty.hidden = true;
+        halftoneChannelEditor.hidden = false;
+        updateHalftonePickerControls(activeChannel.color);
+    }
+
+    function renderHalftonePreview() {
+        const firstFrame = frames[0];
+        if (!firstFrame) {
+            return;
+        }
+
+        const scale = Math.min(
+            1,
+            1400 / firstFrame.width,
+            1000 / firstFrame.height
+        );
+        const width = Math.max(1, Math.round(firstFrame.width * scale));
+        const height = Math.max(1, Math.round(firstFrame.height * scale));
+        halftonePreviewCanvas.width = width;
+        halftonePreviewCanvas.height = height;
+
+        try {
+            drawFrame(
+                require2dContext(halftonePreviewCanvas, {
+                    willReadFrequently: true
+                }),
+                firstFrame,
+                width,
+                height,
+                {
+                    filterType: "halftone",
+                    filterPercent: Number(blurAmount.value),
+                    filterOptions: getFirstFrameFilterOptions("halftone"),
+                    colorLevelCount: Number(colorLevels.value),
+                    downsampleFactor: Number(downsample.value),
+                    filterQualityPercent: Number(filterQuality.value)
+                }
+            );
+        } catch (error) {
+            console.error("半色调预览失败", error);
+            showToast(`预览失败：${getErrorMessage(error)}`);
+        }
+    }
+
+    function openHalftoneDialog() {
+        if (!frames.length) {
+            showToast("请先添加图片");
+            return;
+        }
+
+        if (!halftoneDialog.open) {
+            halftoneDialog.showModal();
+        }
+        renderHalftonePreview();
+        updateHalftoneFrequencyValue();
+    }
+
+    function closeHalftoneDialog() {
+        if (halftoneDialog.open) {
+            halftoneDialog.close();
+        }
+        openHalftoneDialogButton.focus();
     }
 
     function openImageModal(image) {
@@ -1884,23 +3600,92 @@
 
         previewModalCanvas.width = width;
         previewModalCanvas.height = height;
-        drawFrame(
-            previewModalCanvas.getContext("2d"),
-            firstFrame,
-            width,
-            height,
-            firstFrameFilter.value,
-            Number(blurAmount.value),
-            Number(colorLevels.value),
-            Number(downsample.value),
-            Number(filterQuality.value)
-        );
-        previewModal.classList.add("show");
+        try {
+            drawFrame(
+                require2dContext(previewModalCanvas, {
+                    willReadFrequently: true
+                }),
+                firstFrame,
+                width,
+                height,
+                {
+                    filterType: firstFrameFilter.value,
+                    filterPercent: Number(blurAmount.value),
+                    filterOptions: getFirstFrameFilterOptions(),
+                    colorLevelCount: Number(colorLevels.value),
+                    downsampleFactor: Number(downsample.value),
+                    filterQualityPercent: Number(filterQuality.value)
+                }
+            );
+            previewModal.classList.add("show");
+        } catch (error) {
+            console.error("滤镜大图预览失败", error);
+            showToast(`预览失败：${getErrorMessage(error)}`);
+        }
 
     }
 
     function closePreviewModal() {
         previewModal.classList.remove("show");
+    }
+
+    async function downloadFirstFrameFilterPreview() {
+        const firstFrame = frames[0];
+        if (!firstFrame) {
+            showToast("请先添加图片");
+            return;
+        }
+
+        try {
+            const { width, height } = getOutputSize();
+            if (
+                !Number.isInteger(width) ||
+                !Number.isInteger(height) ||
+                width <= 0 ||
+                height <= 0 ||
+                width > 4096 ||
+                height > 4096
+            ) {
+                throw new RangeError("输出尺寸无效");
+            }
+
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+            drawFrame(
+                require2dContext(canvas, { willReadFrequently: true }),
+                firstFrame,
+                width,
+                height,
+                {
+                    filterType: firstFrameFilter.value,
+                    filterPercent: Number(blurAmount.value),
+                    filterOptions: getFirstFrameFilterOptions(),
+                    colorLevelCount: Number(colorLevels.value),
+                    downsampleFactor: Number(downsample.value),
+                    filterQualityPercent: Number(filterQuality.value)
+                }
+            );
+
+            const blob = await new Promise((resolve, reject) => {
+                canvas.toBlob(result => {
+                    if (result) {
+                        resolve(result);
+                    } else {
+                        reject(new Error("浏览器无法生成 PNG 预览"));
+                    }
+                }, "image/png");
+            });
+            const baseName = firstFrame.name.replace(/\.[^.]+$/, "");
+            downloadBlob(
+                blob,
+                `${baseName}-滤镜预览-${width}x${height}.png`
+            );
+            showToast(`已下载 ${width} × ${height} 原尺寸滤镜预览`);
+        } catch (error) {
+            console.error("下载滤镜预览失败", error);
+            showToast(`下载失败：${getErrorMessage(error)}`);
+        }
     }
 
 
@@ -2175,6 +3960,12 @@
 
                 <div class="frame-info">
 
+                    <div class="frame-role">
+                        ${!blurFirstFrame.checked && index === 0
+                            ? "预览帧 · 0ms"
+                            : `动画帧 · ${getFrameDelay()}ms`}
+                    </div>
+
                     <div class="frame-name">
                         ${escapeHtml(frame.name)}
                     </div>
@@ -2320,31 +4111,300 @@
             sizeMode.value === "custom"
                 ? "grid"
                 : "none";
+        updateBlurPreview();
 
     });
+    outputWidth.addEventListener("input", updateBlurPreview);
+    outputHeight.addEventListener("input", updateBlurPreview);
+    fitMode.addEventListener("change", updateBlurPreview);
+    background.addEventListener("change", updateBlurPreview);
+    frameDelayInput.addEventListener("input", renderFrames);
 
     blurFirstFrame.addEventListener("change", () => {
+        if (!frames.length && blurFirstFrame.checked) {
+            blurFirstFrame.checked = false;
+            blurSettings.style.display = "none";
+            showToast("请先添加图片");
+            updateBlurPreview();
+            return;
+        }
 
         blurSettings.style.display =
             blurFirstFrame.checked
                 ? "block"
                 : "none";
 
-        updateBlurPreview();
+        renderFrames();
 
     });
 
-    blurAmount.addEventListener("input", () => {
-
-        blurAmountValue.textContent =
-            `${blurAmount.value} px`;
-        updateBlurPreview();
-
-    });
+    blurAmount.addEventListener("input", updateBlurPreview);
 
     firstFrameFilter.addEventListener("change", updateBlurPreview);
+    openHalftoneDialogButton.addEventListener(
+        "click",
+        openHalftoneDialog
+    );
+    halftoneFrequency.addEventListener("input", () => {
+        blurAmount.value = halftoneFrequency.value;
+        updateBlurPreview();
+    });
+    function updateHalftoneAlignment() {
+        const baseAngle = halftoneBaseAngle.valueAsNumber;
+        const isValid =
+            Number.isFinite(baseAngle) &&
+            baseAngle >= 0 &&
+            baseAngle <= 180;
+        halftoneBaseAngle.setAttribute(
+            "aria-invalid",
+            String(!isValid)
+        );
+        halftoneBaseAngleError.textContent = isValid
+            ? ""
+            : "请输入 0° 到 180° 之间的基础角度";
+        if (isValid) {
+            updateBlurPreview();
+        }
+    }
+    halftoneBaseAngle.addEventListener(
+        "input",
+        updateHalftoneAlignment
+    );
+    halftoneAlignmentModes.forEach(radio => {
+        radio.addEventListener("change", updateBlurPreview);
+    });
+    halftonePaper.addEventListener("change", updateBlurPreview);
+    halftoneChannelTabs.addEventListener("click", event => {
+        const removeButton = event.target.closest(
+            ".halftone-channel-tab-close"
+        );
+        if (removeButton) {
+            removeHalftoneChannel(Number(removeButton.dataset.channelIndex));
+            return;
+        }
 
-    blurPreview.addEventListener("click", openPreviewModal);
+        const tab = event.target.closest(".halftone-channel-tab");
+        if (!tab) {
+            return;
+        }
+
+        activeHalftoneChannelIndex = Number(tab.dataset.channelIndex);
+        updateHalftoneChannelTabSelection();
+        updateHalftoneChannelControls();
+        updateBlurPreview();
+    });
+    halftoneChannelTabs.addEventListener("keydown", event => {
+        if (
+            event.key !== "ArrowLeft" &&
+            event.key !== "ArrowRight"
+        ) {
+            return;
+        }
+        if (!event.target.matches(".halftone-channel-tab")) {
+            return;
+        }
+
+        event.preventDefault();
+        const direction = event.key === "ArrowRight" ? 1 : -1;
+        activeHalftoneChannelIndex =
+            (activeHalftoneChannelIndex + direction + halftoneChannels.length) %
+            halftoneChannels.length;
+        updateHalftoneChannelControls();
+        renderHalftoneChannelTabs();
+        document
+            .getElementById(`halftoneChannelTab${activeHalftoneChannelIndex}`)
+            .focus();
+        updateBlurPreview();
+    });
+    addHalftoneChannelButton.addEventListener("click", () => {
+        if (halftoneChannels.length >= 3) {
+            return;
+        }
+
+        const defaults = [
+            { name: "青", color: "#00a8e8" },
+            { name: "洋红", color: "#e6007e" },
+            { name: "黄", color: "#f4c400" }
+        ];
+        const nextIndex = halftoneChannels.length;
+        halftoneChannels.push(defaults[nextIndex]);
+        activeHalftoneChannelIndex = nextIndex;
+        renderHalftoneChannelTabs();
+        updateHalftoneChannelControls();
+        updateBlurPreview();
+    });
+    function removeHalftoneChannel(index) {
+        if (index < 0 || index >= halftoneChannels.length) {
+            throw new Error("要删除的半色调通道不存在");
+        }
+
+        halftoneChannels.splice(index, 1);
+        if (halftoneChannels.length === 0) {
+            activeHalftoneChannelIndex = 0;
+        } else if (index < activeHalftoneChannelIndex) {
+            activeHalftoneChannelIndex -= 1;
+        } else if (index === activeHalftoneChannelIndex) {
+            activeHalftoneChannelIndex = Math.min(
+                index,
+                halftoneChannels.length - 1
+            );
+        }
+        renderHalftoneChannelTabs();
+        updateHalftoneChannelControls();
+        updateBlurPreview();
+        (
+            document.getElementById(
+                `halftoneChannelTab${activeHalftoneChannelIndex}`
+            ) || addHalftoneChannelButton
+        ).focus();
+    }
+    function applyHalftoneSvPosition(event) {
+        const bounds = halftoneSvPicker.getBoundingClientRect();
+        halftonePickerSaturation = Math.min(
+            1,
+            Math.max(0, (event.clientX - bounds.left) / bounds.width)
+        );
+        halftonePickerValue = 1 - Math.min(
+            1,
+            Math.max(0, (event.clientY - bounds.top) / bounds.height)
+        );
+        setActiveHalftoneInkColor(
+            hsvToHex(
+                halftonePickerHue,
+                halftonePickerSaturation,
+                halftonePickerValue
+            )
+        );
+    }
+
+    halftoneSvPicker.addEventListener("pointerdown", event => {
+        if (event.button !== 0) {
+            return;
+        }
+        event.preventDefault();
+        halftoneSvPicker.setPointerCapture(event.pointerId);
+        applyHalftoneSvPosition(event);
+    });
+    halftoneSvPicker.addEventListener("pointermove", event => {
+        if (halftoneSvPicker.hasPointerCapture(event.pointerId)) {
+            applyHalftoneSvPosition(event);
+        }
+    });
+    halftoneSvPicker.addEventListener("keydown", event => {
+        const step = event.shiftKey ? 0.05 : 0.01;
+        if (event.key === "ArrowLeft") {
+            halftonePickerSaturation = Math.max(
+                0,
+                halftonePickerSaturation - step
+            );
+        } else if (event.key === "ArrowRight") {
+            halftonePickerSaturation = Math.min(
+                1,
+                halftonePickerSaturation + step
+            );
+        } else if (event.key === "ArrowUp") {
+            halftonePickerValue = Math.min(
+                1,
+                halftonePickerValue + step
+            );
+        } else if (event.key === "ArrowDown") {
+            halftonePickerValue = Math.max(
+                0,
+                halftonePickerValue - step
+            );
+        } else {
+            return;
+        }
+        event.preventDefault();
+        setActiveHalftoneInkColor(
+            hsvToHex(
+                halftonePickerHue,
+                halftonePickerSaturation,
+                halftonePickerValue
+            )
+        );
+    });
+    halftoneHue.addEventListener("input", () => {
+        halftonePickerHue = Number(halftoneHue.value);
+        halftoneHueValue.textContent = `${halftoneHue.value}°`;
+        setActiveHalftoneInkColor(
+            hsvToHex(
+                halftonePickerHue,
+                halftonePickerSaturation,
+                halftonePickerValue
+            )
+        );
+    });
+    halftoneColorHex.addEventListener("input", () => {
+        const color = halftoneColorHex.value.trim();
+        if (!/^#?[0-9A-F]{6}$/i.test(color)) {
+            halftoneColorHex.removeAttribute("aria-invalid");
+            halftoneColorError.textContent = "";
+            return;
+        }
+        setActiveHalftoneInkColor(
+            color.startsWith("#") ? color : `#${color}`
+        );
+    });
+    halftoneColorHex.addEventListener("change", () => {
+        const color = halftoneColorHex.value.trim();
+        if (/^#?[0-9A-F]{6}$/i.test(color)) {
+            return;
+        }
+        halftoneColorHex.setAttribute("aria-invalid", "true");
+        halftoneColorError.textContent = "请输入有效的 6 位 HEX 颜色，例如 #EC008C";
+    });
+    halftoneColorPresets.addEventListener("click", event => {
+        const presetButton = event.target.closest(
+            ".halftone-color-preset"
+        );
+        if (!presetButton) {
+            return;
+        }
+        setActiveHalftoneInkColor(presetButton.dataset.color);
+    });
+    resetHalftoneSettingsButton.addEventListener("click", () => {
+        halftoneFrequency.value = "3";
+        halftoneBaseAngle.value = "45";
+        halftoneBaseAngle.removeAttribute("aria-invalid");
+        halftoneBaseAngleError.textContent = "";
+        document.querySelector(
+            'input[name="halftoneAlignmentMode"][value="Rosette"]'
+        ).checked = true;
+        halftonePaper.value = "uncoated";
+        halftoneChannels = [];
+        activeHalftoneChannelIndex = 0;
+        blurAmount.value = "3";
+        renderHalftoneChannelTabs();
+        updateHalftoneChannelControls();
+        updateBlurPreview();
+    });
+    closeHalftoneDialogButton.addEventListener(
+        "click",
+        closeHalftoneDialog
+    );
+    doneHalftoneDialogButton.addEventListener(
+        "click",
+        closeHalftoneDialog
+    );
+    halftoneDialog.addEventListener("click", event => {
+        if (event.target === halftoneDialog) {
+            closeHalftoneDialog();
+        }
+    });
+    halftoneDialog.addEventListener("close", () => {
+        openHalftoneDialogButton.focus();
+    });
+
+    blurPreview.addEventListener("click", event => {
+        if (!event.target.closest("#downloadFilterPreview")) {
+            openPreviewModal();
+        }
+    });
+    downloadFilterPreviewButton.addEventListener("click", event => {
+        event.stopPropagation();
+        downloadFirstFrameFilterPreview();
+    });
     previewModalClose.addEventListener("click", closePreviewModal);
     previewModal.addEventListener("click", event => {
         if (event.target === previewModal) {
@@ -2375,6 +4435,8 @@
         updateBlurPreview();
     });
 
+    renderHalftoneChannelTabs();
+    updateHalftoneChannelControls();
 
     /*
      * ==========================================
@@ -2455,12 +4517,17 @@
         frame,
         width,
         height,
-        filterType = "blur",
-        filterAmount = 0,
-        colorLevelCount = 16,
-        downsampleFactor = 1,
-        filterQualityPercent = 100
+        {
+            filterType = "blur",
+            filterPercent = 0,
+            colorLevelCount = 16,
+            downsampleFactor = 1,
+            filterQualityPercent = 100,
+            filterOptions = {}
+        } = {}
     ) {
+        const filterAmount =
+            getFilterAmount(width, height, filterPercent);
 
         /*
          * 背景
@@ -2498,12 +4565,6 @@
 
         const img = frame.img;
 
-        ctx.save();
-
-        if (filterType === "blur" && filterAmount > 0) {
-            ctx.filter = `blur(${filterAmount}px)`;
-        }
-
         /*
          * 拉伸
          */
@@ -2518,73 +4579,40 @@
                 height
             );
 
-            ctx.restore();
-            applyFrameFilter(
-                ctx,
-                width,
-                height,
-                filterType,
-                filterAmount,
-                colorLevelCount,
-                downsampleFactor,
-                filterQualityPercent
-            );
+        } else {
+            /*
+             * 等比计算
+             */
+            const scale =
+                fitMode.value === "contain"
+                    ? Math.min(
+                        width / img.naturalWidth,
+                        height / img.naturalHeight
+                    )
+                    : Math.max(
+                        width / img.naturalWidth,
+                        height / img.naturalHeight
+                    );
+            const drawWidth = img.naturalWidth * scale;
+            const drawHeight = img.naturalHeight * scale;
+            const x = (width - drawWidth) / 2;
+            const y = (height - drawHeight) / 2;
 
-            return;
-
+            ctx.drawImage(img, x, y, drawWidth, drawHeight);
         }
 
-
-        /*
-         * 等比计算
-         */
-
-        const scale =
-            fitMode.value === "contain"
-
-                ? Math.min(
-                    width / img.naturalWidth,
-                    height / img.naturalHeight
-                )
-
-                : Math.max(
-                    width / img.naturalWidth,
-                    height / img.naturalHeight
-                );
-
-
-        const drawWidth =
-            img.naturalWidth * scale;
-
-        const drawHeight =
-            img.naturalHeight * scale;
-
-
-        const x =
-            (width - drawWidth) / 2;
-
-        const y =
-            (height - drawHeight) / 2;
-
-
-        ctx.drawImage(
-            img,
-            x,
-            y,
-            drawWidth,
-            drawHeight
-        );
-
-        ctx.restore();
         applyFrameFilter(
             ctx,
             width,
             height,
-            filterType,
-            filterAmount,
-            colorLevelCount,
-            downsampleFactor,
-            filterQualityPercent
+            {
+                type: filterType,
+                amount: filterAmount,
+                colorLevelCount,
+                downsampleFactor,
+                filterQualityPercent,
+                filterOptions
+            }
         );
 
     }
@@ -2607,6 +4635,11 @@
 
             }
 
+            if (frames.length === 1 && !blurFirstFrame.checked) {
+                showToast("开启添加滤镜预览，或添加至少两张图片");
+                return;
+            }
+
             const outputFrames =
                 blurFirstFrame.checked
                     ? [
@@ -2615,19 +4648,13 @@
                             name: `${frames[0].name}（滤镜首帧）`,
                             filterEnabled: true,
                             filterType: firstFrameFilter.value,
-                            filterAmount: Number(blurAmount.value)
+                            filterPercent: Number(blurAmount.value)
                         },
                         ...frames
                     ]
                     : frames;
 
-            const delay = Math.max(
-                1,
-                Math.min(
-                    3600000,
-                    Number(frameDelayInput.value) || 1000
-                )
-            );
+            const delay = getFrameDelay();
 
             // const fps =
             //     Math.max(
@@ -2667,7 +4694,6 @@
 
 
             try {
-
                 const canvas =
                     document.createElement("canvas");
 
@@ -2676,17 +4702,17 @@
 
 
                 const ctx =
-                    canvas.getContext("2d", {
+                    require2dContext(canvas, {
                         willReadFrequently: true
                     });
 
                 const useDefaultImageStructure =
                     blurFirstFrame.checked;
+                const canUseSharedPalette =
+                    frames.every(frame => !isPngSourceFrame(frame));
                 const framesToEncode =
                     useDefaultImageStructure
-                        ? frames.length === 1
-                            ? [frames[0], frames[0]]
-                            : frames
+                        ? frames
                         : outputFrames;
                 const delays = useDefaultImageStructure
                     ? framesToEncode.map(() => delay)
@@ -2697,26 +4723,31 @@
                 const buffers = [
                 ];
                 const renderFrame = frame => {
+                    const filterType = frame.filterEnabled
+                        ? frame.filterType
+                        : "blur";
                     drawFrame(
                         ctx,
                         frame,
                         width,
                         height,
-                        frame.filterEnabled
-                            ? frame.filterType
-                            : "blur",
-                        frame.filterEnabled
-                            ? frame.filterAmount
-                            : 0,
-                        frame.filterEnabled
-                            ? Number(colorLevels.value)
-                            : 256,
-                        frame.filterEnabled
-                            ? Number(downsample.value)
-                            : 1,
-                        frame.filterEnabled
-                            ? Number(filterQuality.value)
-                            : 100
+                        {
+                            filterType,
+                            filterPercent: frame.filterEnabled
+                                ? frame.filterPercent
+                                : 0,
+                            colorLevelCount: frame.filterEnabled
+                                ? Number(colorLevels.value)
+                                : 256,
+                            downsampleFactor: frame.filterEnabled
+                                ? Number(downsample.value)
+                                : 1,
+                            filterQualityPercent: frame.filterEnabled
+                                ? Number(filterQuality.value)
+                                : 100,
+                            filterOptions:
+                                getFirstFrameFilterOptions(filterType)
+                        }
                     );
 
                     return ctx.getImageData(
@@ -2727,14 +4758,25 @@
                     ).data.buffer;
                 };
 
-                let defaultImageBuffer = null;
-
-                if (useDefaultImageStructure) {
-                    defaultImageBuffer = renderFrame(outputFrames[0]);
-                }
+                const defaultImageBuffer = useDefaultImageStructure
+                    ? canUseSharedPalette
+                        ? renderFrame(outputFrames[0])
+                        : prepareFrameForEncoding(
+                            outputFrames[0],
+                            renderFrame(outputFrames[0])
+                        )
+                    : null;
 
                 for (let i = 0; i < framesToEncode.length; i++) {
-                    buffers.push(renderFrame(framesToEncode[i]));
+                    const frame = framesToEncode[i];
+                    buffers.push(
+                        canUseSharedPalette
+                            ? renderFrame(frame)
+                            : prepareFrameForEncoding(
+                                frame,
+                                renderFrame(frame)
+                            )
+                    );
                 
                     const progress = Math.round(
                         ((i + 1) / framesToEncode.length) * 80
@@ -2757,18 +4799,31 @@
                 progressBar.style.width = "90%";
 
                 progressText.textContent =
-                    "正在编码 APNG…";
+                    "正在编码 APNG（非 PNG 帧已自动优化）…";
 
 
-                let animationPNGBuffer = UPNG.encode(
-                    buffers,
-                    width,
-                    height,
-                    0,
-                    delays,
-                    undefined,
-                    useDefaultImageStructure
-                );
+                let animationPNGBuffer =
+                    useDefaultImageStructure &&
+                    buffers.length === 1 &&
+                    !canUseSharedPalette
+                        ? UPNG.encodeLL(
+                            buffers,
+                            width,
+                            height,
+                            3,
+                            1,
+                            8
+                        )
+                        : UPNG.encode(
+                            buffers,
+                            width,
+                            height,
+                            canUseSharedPalette ? 256 : 0,
+                            delays,
+                            undefined,
+                            useDefaultImageStructure &&
+                                !canUseSharedPalette
+                        );
 
                 animationPNGBuffer = patchAPNGDelays(
                     animationPNGBuffer,
@@ -2778,49 +4833,27 @@
                 let pngBuffer = animationPNGBuffer;
 
                 if (useDefaultImageStructure) {
-                    const defaultPNGBuffer = UPNG.encode(
-                        [defaultImageBuffer, defaultImageBuffer],
-                        width,
-                        height,
-                        0,
-                        [0, 1],
-                        undefined,
-                        true
-                    );
+                    const defaultPNGBuffer = canUseSharedPalette
+                        ? await encodeDefaultImageWithPalette(
+                            defaultImageBuffer,
+                            width,
+                            height,
+                            animationPNGBuffer
+                        )
+                        : UPNG.encodeLL(
+                            [defaultImageBuffer],
+                            width,
+                            height,
+                            3,
+                            1,
+                            8
+                        );
                     pngBuffer = combineDefaultImageWithAPNG(
                         defaultPNGBuffer,
-                        animationPNGBuffer
+                        animationPNGBuffer,
+                        delay
                     );
                 }
-
-                const test = UPNG.decode(pngBuffer);
-
-                console.log("生成结果：", test);
-                console.log("尺寸：", test.width, test.height);
-                console.log("帧数：", test.frames ? test.frames.length : 0);
-                console.log(
-                    "每帧延迟：",
-                    test.frames.map((f, i) => ({
-                        frame: i + 1,
-                        delay: f.delay,
-                        rect: f.rect
-                    }))
-                );
-                console.log("APNG size:", pngBuffer.byteLength);
-
-                const testFrames = UPNG.toRGBA8(test);
-                            
-                console.log("RGBA帧数：", testFrames.length);
-                            
-                if (testFrames.length > 0) {
-                    console.log(
-                        "第一帧RGBA大小：",
-                        testFrames[0].byteLength
-                    );
-                }
-
-
-
 
                 generatedBlob = new Blob(
                     [pngBuffer],
