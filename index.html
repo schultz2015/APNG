@@ -2501,7 +2501,8 @@
     import {
         combineDefaultImageWithAPNG,
         encodeDefaultImageWithPalette,
-        patchAPNGDelays
+        patchAPNGDelays,
+        recompressAPNGImageData
     } from "./src/apng.js";
 
     /*
@@ -4976,6 +4977,11 @@
                         delay
                     );
                 }
+
+                progressBar.style.width = "95%";
+                progressText.textContent =
+                    "正在无损压缩 APNG 图像数据…";
+                pngBuffer = await recompressAPNGImageData(pngBuffer);
 
                 generatedBlob = new Blob(
                     [pngBuffer],

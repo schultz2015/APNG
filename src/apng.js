@@ -186,6 +186,108 @@ export function patchAPNGDelays(pngBuffer, delays) {
         return data.buffer;
     }
 
+export async function recompressAPNGImageData(pngBuffer) {
+        if (
+                typeof CompressionStream !== "function" ||
+                typeof DecompressionStream !== "function"
+        ) {
+                throw new Error(
+                        "当前浏览器不支持 APNG 无损压缩"
+                );
+        }
+
+        const chunks = getChunks(pngBuffer);
+        const output = [
+                new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10])
+        ];
+        let sequenceNumber = 0;
+
+        async function compressData(data) {
+                const uncompressed = await new Response(
+                        new Blob([data])
+                                .stream()
+                                .pipeThrough(new DecompressionStream("deflate"))
+                ).arrayBuffer();
+                const compressed = await new Response(
+                        new Blob([uncompressed])
+                                .stream()
+                                .pipeThrough(new CompressionStream("deflate"))
+                ).arrayBuffer();
+                const compressedBytes = new Uint8Array(compressed);
+
+                return compressedBytes.length < data.length
+                        ? compressedBytes
+                        : data;
+        }
+
+        function concatenate(parts) {
+                const totalLength = parts.reduce(
+                        (length, part) => length + part.length,
+                        0
+                );
+                const result = new Uint8Array(totalLength);
+                let offset = 0;
+
+                for (const part of parts) {
+                        result.set(part, offset);
+                        offset += part.length;
+                }
+
+                return result;
+        }
+
+        for (let index = 0; index < chunks.length;) {
+                const chunk = chunks[index];
+
+                if (chunk.type === "IDAT" || chunk.type === "fdAT") {
+                        const type = chunk.type;
+                        const dataParts = [];
+                        while (
+                                index < chunks.length &&
+                                chunks[index].type === type
+                        ) {
+                                const imageData = chunks[index].data;
+                                if (type === "fdAT") {
+                                        if (imageData.length < 4) {
+                                                throw new Error(
+                                                        "APNG 帧数据块缺少序号"
+                                                );
+                                        }
+                                        dataParts.push(imageData.subarray(4));
+                                } else {
+                                        dataParts.push(imageData);
+                                }
+                                index++;
+                        }
+
+                        const imageData = concatenate(dataParts);
+                        const compressed = await compressData(imageData);
+                        if (type === "fdAT") {
+                                const frameData = new Uint8Array(
+                                        compressed.length + 4
+                                );
+                                setU32(frameData, 0, sequenceNumber++);
+                                frameData.set(compressed, 4);
+                                output.push(createChunk(type, frameData));
+                        } else {
+                                output.push(createChunk(type, compressed));
+                        }
+                        continue;
+                }
+
+                if (chunk.type === "fcTL") {
+                        const frameControl = chunk.data.slice();
+                        setU32(frameControl, 0, sequenceNumber++);
+                        output.push(createChunk(chunk.type, frameControl));
+                } else {
+                        output.push(createChunk(chunk.type, chunk.data));
+                }
+                index++;
+        }
+
+        return concatenate(output).buffer;
+}
+
 
 function readChunkType(data, offset) {
         return String.fromCharCode(
