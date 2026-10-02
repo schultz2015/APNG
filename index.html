@@ -228,6 +228,19 @@
             font-size: 12px;
         }
 
+        .extract-role {
+            display: inline-flex;
+            align-items: center;
+            min-height: 22px;
+            margin-top: 8px;
+            padding: 2px 9px;
+            border-radius: 11px;
+            background: var(--soft-surface);
+            color: var(--soft-text);
+            font-size: 11px;
+            font-weight: 600;
+        }
+
         .app-logo {
             width: 42px;
             height: 42px;
@@ -1815,7 +1828,7 @@
 
             <div class="card-title">图片帧</div>
             <div class="card-description">
-                按 1 → 2 → 3 → … 的顺序排列图片，<b>未添加滤镜预览时</b>，上传的第一图会作为预览图，后续成为 APNG 的动画帧。
+                按 1 → 2 → 3 → … 的顺序排列图片。未添加滤镜时，第一张作为预览图，后续图片作为动画帧；开启滤镜时，滤镜图作为预览图，上传图片按顺序作为动画帧。
             </div>
 
             <label class="drop-zone" id="dropZone">
@@ -2844,16 +2857,19 @@
             : "还没有加载图片";
         extractAllButton.disabled = extractedPngs.length === 0;
 
-        extractedPngs.forEach((blob, index) => {
+        extractedPngs.forEach(({ blob, role }, index) => {
             const card = document.createElement("div");
             card.className = "extract-card";
             const image = document.createElement("img");
             image.className = "extract-image transparency-checker";
-            image.alt = `第 ${index + 1} 帧`;
+            image.alt = `第 ${index + 1} 帧，${role}`;
             image.src = URL.createObjectURL(blob);
             image.addEventListener("click", () => {
                 openImageModal(image);
             });
+            const frameRole = document.createElement("div");
+            frameRole.className = "extract-role";
+            frameRole.textContent = role;
             const name = document.createElement("div");
             name.className = "extract-name";
             name.textContent = `第 ${index + 1} 帧`;
@@ -2864,9 +2880,42 @@
             button.addEventListener("click", () => {
                 downloadBlob(blob, `frame-${String(index + 1).padStart(3, "0")}.png`);
             });
-            card.append(image, name, button);
+            card.append(image, frameRole, name, button);
             extractedFrames.appendChild(card);
         });
+    }
+
+    function isFirstAnimationFrameTheDefaultImage(fileBuffer) {
+        const data = new Uint8Array(fileBuffer);
+        const view = new DataView(fileBuffer);
+        let offset = 8;
+        let hasImageData = false;
+
+        while (offset + 12 <= data.length) {
+            const length = view.getUint32(offset, false);
+            const chunkEnd = offset + length + 12;
+            if (chunkEnd > data.length) {
+                return false;
+            }
+
+            const type = String.fromCharCode(
+                data[offset + 4],
+                data[offset + 5],
+                data[offset + 6],
+                data[offset + 7]
+            );
+            if (type === "fcTL") {
+                return !hasImageData;
+            }
+            if (type === "IDAT") {
+                hasImageData = true;
+            } else if (type === "IEND") {
+                return false;
+            }
+            offset = chunkEnd;
+        }
+
+        return false;
     }
 
     function updateExtractProgress(progress, message, isError = false) {
@@ -2913,27 +2962,74 @@
             if (rgbaFrames.length === 0) {
                 throw new Error("图片中没有可导出的帧");
             }
+            const isAnimated = Boolean(decoded.tabs?.acTL);
+            const firstFrameIsDefault = isAnimated &&
+                isFirstAnimationFrameTheDefaultImage(fileBuffer);
+            const framesToExport = [];
+            if (isAnimated && !firstFrameIsDefault) {
+                const defaultImageFrames = UPNG.toRGBA8({
+                    ...decoded,
+                    frames: [
+                        {
+                            rect: {
+                                x: 0,
+                                y: 0,
+                                width: decoded.width,
+                                height: decoded.height
+                            },
+                            delay: 0,
+                            dispose: 0,
+                            blend: 0,
+                            data: decoded.data
+                        }
+                    ]
+                });
+                if (defaultImageFrames.length === 0) {
+                    throw new Error("APNG 默认预览图解码失败");
+                }
+                framesToExport.push({
+                    rgba: defaultImageFrames[0],
+                    role: "预览帧 · 0ms"
+                });
+            }
+            rgbaFrames.forEach((rgba, index) => {
+                const delay = Math.max(
+                    0,
+                    Math.round(decoded.frames[index]?.delay || 0)
+                );
+                framesToExport.push({
+                    rgba,
+                    role: !isAnimated
+                        ? "预览帧 · 0ms"
+                        : index === 0 && firstFrameIsDefault
+                            ? `预览图 + 动画帧 · ${delay}ms`
+                            : `动画帧 · ${delay}ms`
+                });
+            });
             extractedPngs = [];
 
-            for (let index = 0; index < rgbaFrames.length; index++) {
+            for (let index = 0; index < framesToExport.length; index++) {
                 updateExtractProgress(
-                    40 + (index / rgbaFrames.length) * 55,
-                    `正在导出第 ${index + 1} / ${rgbaFrames.length} 帧…`
+                    40 + (index / framesToExport.length) * 55,
+                    `正在导出第 ${index + 1} / ${framesToExport.length} 帧…`
                 );
                 await yieldToBrowser();
 
                 const pngBuffer = UPNG.encode(
-                    [rgbaFrames[index]],
+                    [framesToExport[index].rgba],
                     decoded.width,
                     decoded.height,
                     0
                 );
                 extractedPngs.push(
-                    new Blob([pngBuffer], { type: "image/png" })
+                    {
+                        blob: new Blob([pngBuffer], { type: "image/png" }),
+                        role: framesToExport[index].role
+                    }
                 );
                 updateExtractProgress(
-                    40 + ((index + 1) / rgbaFrames.length) * 55,
-                    `已导出 ${index + 1} / ${rgbaFrames.length} 帧`
+                    40 + ((index + 1) / framesToExport.length) * 55,
+                    `已导出 ${index + 1} / ${framesToExport.length} 帧`
                 );
             }
 
@@ -2979,7 +3075,7 @@
     });
 
     extractAllButton.addEventListener("click", () => {
-        extractedPngs.forEach((blob, index) => {
+        extractedPngs.forEach(({ blob }, index) => {
             setTimeout(() => {
                 downloadBlob(
                     blob,
@@ -4729,18 +4825,17 @@
                     });
 
                 const useDefaultImageStructure =
-                    blurFirstFrame.checked;
+                    true;
                 const canUseSharedPalette =
                     frames.every(frame => !isPngSourceFrame(frame));
                 const framesToEncode =
-                    useDefaultImageStructure
-                        ? frames
-                        : outputFrames;
-                const delays = useDefaultImageStructure
-                    ? framesToEncode.map(() => delay)
-                    : framesToEncode.map((_, index) =>
-                        index === 0 ? 0 : delay
-                    );
+                    blurFirstFrame.checked
+                        ? frames.length === 1
+                            ? [...frames, frames[0]]
+                            : frames
+                        : frames.slice(1);
+                const delays =
+                    framesToEncode.map(() => delay);
 
                 const buffers = [
                 ];
@@ -4780,12 +4875,15 @@
                     ).data.buffer;
                 };
 
+                const defaultImageFrame = blurFirstFrame.checked
+                    ? outputFrames[0]
+                    : frames[0];
                 const defaultImageBuffer = useDefaultImageStructure
                     ? canUseSharedPalette
-                        ? renderFrame(outputFrames[0])
+                        ? renderFrame(defaultImageFrame)
                         : prepareFrameForEncoding(
-                            outputFrames[0],
-                            renderFrame(outputFrames[0])
+                            defaultImageFrame,
+                            renderFrame(defaultImageFrame)
                         )
                     : null;
 
@@ -4815,6 +4913,8 @@
                     );
                 }
 
+                const encodedBuffers = buffers;
+                const encodedDelays = delays;
 
                 // 编码 APNG
 
@@ -4829,7 +4929,7 @@
                     buffers.length === 1 &&
                     !canUseSharedPalette
                         ? UPNG.encodeLL(
-                            buffers,
+                            encodedBuffers,
                             width,
                             height,
                             3,
@@ -4837,11 +4937,11 @@
                             8
                         )
                         : UPNG.encode(
-                            buffers,
+                            encodedBuffers,
                             width,
                             height,
                             canUseSharedPalette ? 256 : 0,
-                            delays,
+                            encodedDelays,
                             undefined,
                             useDefaultImageStructure &&
                                 !canUseSharedPalette
@@ -4849,7 +4949,7 @@
 
                 animationPNGBuffer = patchAPNGDelays(
                     animationPNGBuffer,
-                    delays
+                    encodedDelays
                 );
 
                 let pngBuffer = animationPNGBuffer;
@@ -4900,13 +5000,9 @@
 
 
                 resultInfo.textContent =
-                    `${width} × ${height} · ` +
-                    `${framesToEncode.length} 帧 · ` +
-                    (
-                        framesToEncode.length > 1
-                            ? `动画帧 ${delay} ms/帧 · `
-                            : "单帧输出 · "
-                    ) +
+                    `${width} × ${height} · 预览图 + ` +
+                    `${framesToEncode.length} 动画帧 · ` +
+                    `动画帧 ${delay} ms/帧 · ` +
                     `${sizeKB.toFixed(1)} KB`;
 
 
